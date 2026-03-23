@@ -61,9 +61,7 @@ const MessagesPage = () => {
 
   const filteredConversations = conversations.filter((conv) => {
     const otherUser = getOtherParticipant(conv.participants);
-    return otherUser?.username
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
+    return otherUser?.username.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
   if (loading) {
@@ -77,7 +75,7 @@ const MessagesPage = () => {
   if (conversationsError?.response?.status === 429) {
     return (
       <div className="max-w-4xl mx-auto">
-        <div className="bg-mono-white dark:bg-mono-900 rounded-2xl border border-mono-200 dark:border-mono-800 p-8 shadow-xl hover:shadow-2xl transition-shadow duration-300">
+        <div className="bg-mono-white dark:bg-mono-900 rounded-card border border-mono-200 dark:border-mono-800 p-8 shadow-xl hover:shadow-2xl transition-shadow duration-300">
           <div className="flex flex-col items-center text-center group">
             <div className="relative mb-6">
               <div className="absolute inset-0 bg-gradient-to-br from-mono-400 to-mono-600 rounded-full blur-xl opacity-20 group-hover:opacity-30 transition-opacity duration-300" />
@@ -85,9 +83,7 @@ const MessagesPage = () => {
                 ⏱️
               </div>
             </div>
-            <h2 className="text-3xl font-bold text-mono-black dark:text-mono-white mb-3">
-              Too Many Requests
-            </h2>
+            <h2 className="text-3xl font-bold text-mono-black dark:text-mono-white mb-3">Too Many Requests</h2>
             <p className="text-lg text-mono-600 dark:text-mono-400 mb-6 max-w-md">
               {conversationsError.response?.data?.message ||
                 "You've made too many attempts. Please take a break and try again later."}
@@ -95,13 +91,13 @@ const MessagesPage = () => {
             <div className="flex gap-4">
               <button
                 onClick={() => window.location.reload()}
-                className="px-6 py-3 bg-mono-black dark:bg-mono-white text-mono-white dark:text-mono-black font-semibold rounded-xl hover:scale-105 transform transition-all duration-200 shadow-lg hover:shadow-xl"
+                className="px-6 py-3 bg-mono-black dark:bg-mono-white text-mono-white dark:text-mono-black font-semibold rounded-btn hover:scale-105 transform transition-all duration-200 shadow-lg hover:shadow-xl"
               >
                 Try Again
               </button>
               <button
                 onClick={() => navigate("/")}
-                className="px-6 py-3 bg-mono-200 dark:bg-mono-800 text-mono-black dark:text-mono-white font-semibold rounded-xl hover:scale-105 transform transition-all duration-200 shadow-lg hover:shadow-xl"
+                className="px-6 py-3 bg-mono-200 dark:bg-mono-800 text-mono-black dark:text-mono-white font-semibold rounded-btn hover:scale-105 transform transition-all duration-200 shadow-lg hover:shadow-xl"
               >
                 Go Home
               </button>
@@ -114,12 +110,10 @@ const MessagesPage = () => {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="bg-mono-white dark:bg-mono-900 border border-mono-300 dark:border-mono-800 rounded-lg shadow-mono dark:shadow-mono-md">
+      <div className="bg-mono-white dark:bg-mono-900 border border-mono-300 dark:border-mono-800 rounded-card shadow-mono dark:shadow-mono-md">
         {/* Header */}
         <div className="border-b border-mono-300 dark:border-mono-800 p-4">
-          <h1 className="text-2xl font-bold text-mono-black dark:text-mono-white mb-4">
-            Messages
-          </h1>
+          <h1 className="text-2xl font-bold text-mono-black dark:text-mono-white mb-4">Messages</h1>
 
           {/* Search */}
           <div className="relative">
@@ -129,7 +123,7 @@ const MessagesPage = () => {
               placeholder="Search conversations..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-mono-100 dark:bg-mono-800 border border-mono-300 dark:border-mono-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-mono-black dark:focus:ring-mono-white text-mono-black dark:text-mono-white placeholder-mono-500"
+              className="w-full pl-10 pr-4 py-2 bg-mono-100 dark:bg-mono-800 border border-mono-300 dark:border-mono-700 rounded-input focus:outline-none focus:ring-2 focus:ring-mono-black dark:focus:ring-mono-white text-mono-black dark:text-mono-white placeholder-mono-500"
             />
           </div>
         </div>
@@ -142,9 +136,7 @@ const MessagesPage = () => {
               <p className="text-mono-600 dark:text-mono-500 mb-2">
                 {searchQuery ? "No conversations found" : "No messages yet"}
               </p>
-              <p className="text-sm text-mono-500">
-                Start a conversation by visiting a user's profile
-              </p>
+              <p className="text-sm text-mono-500">Start a conversation by visiting a user's profile</p>
             </div>
           ) : (
             filteredConversations.map((conversation) => {
@@ -165,9 +157,7 @@ const MessagesPage = () => {
                     queryClient.prefetchQuery({
                       queryKey: ["messages", otherUser._id],
                       queryFn: async () => {
-                        const response = await api.get(
-                          `/messages/${otherUser._id}`,
-                        );
+                        const response = await api.get(`/messages/${otherUser._id}`);
                         if (response.data.status === "success") {
                           return response.data.data.messages || [];
                         }
@@ -179,10 +169,7 @@ const MessagesPage = () => {
                 >
                   <div className="flex items-center gap-4">
                     <img
-                      src={
-                        otherUser?.profilePicture ||
-                        "https://via.placeholder.com/50"
-                      }
+                      src={otherUser?.profilePicture || "https://via.placeholder.com/50"}
                       alt={otherUser?.username}
                       className="w-12 h-12 rounded-full object-cover border-2 border-mono-300 dark:border-mono-700"
                     />
@@ -190,21 +177,16 @@ const MessagesPage = () => {
                       <div className="flex items-center justify-between mb-1">
                         <h3
                           className={`font-semibold truncate ${
-                            isUnread
-                              ? "text-mono-black dark:text-mono-white"
-                              : "text-mono-700 dark:text-mono-300"
+                            isUnread ? "text-mono-black dark:text-mono-white" : "text-mono-700 dark:text-mono-300"
                           }`}
                         >
                           {otherUser?.username}
                         </h3>
                         {lastMessage && (
                           <span className="text-xs text-mono-500">
-                            {formatDistanceToNow(
-                              new Date(lastMessage.createdAt),
-                              {
-                                addSuffix: true,
-                              },
-                            )}
+                            {formatDistanceToNow(new Date(lastMessage.createdAt), {
+                              addSuffix: true,
+                            })}
                           </span>
                         )}
                       </div>
@@ -220,9 +202,7 @@ const MessagesPage = () => {
                         </p>
                       )}
                     </div>
-                    {isUnread && (
-                      <div className="w-3 h-3 bg-mono-black dark:bg-mono-white rounded-full"></div>
-                    )}
+                    {isUnread && <div className="w-3 h-3 bg-mono-black dark:bg-mono-white rounded-full"></div>}
                   </div>
                 </div>
               );

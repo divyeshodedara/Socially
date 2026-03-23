@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 // Lightweight list item used in sidebars or simple lists
 const ListItem = ({ avatarSrc, title, subtitle, to, action }) => {
   return (
-    <div className="flex items-center justify-between p-3 rounded-xl hover:bg-mono-50 dark:hover:bg-mono-800 transition-colors">
+    <div className="flex items-center justify-between p-3 rounded-btn hover:bg-mono-50 dark:hover:bg-mono-800 transition-colors">
       <Link to={to || "#"} className="flex items-center gap-3 flex-1 min-w-0">
         <img
           src={avatarSrc || "https://via.placeholder.com/40"}

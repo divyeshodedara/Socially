@@ -68,20 +68,13 @@ const ChatPage = () => {
       const handleMessage = (data) => {
         if (data.type === "newMessage" && data.message.sender._id === userId) {
           // Update messages cache optimistically
-          queryClient.setQueryData(["messages", userId], (old = []) => [
-            ...old,
-            data.message,
-          ]);
+          queryClient.setQueryData(["messages", userId], (old = []) => [...old, data.message]);
           markMessagesAsSeen();
         }
         if (data.type === "messagesSeen" && data.seenBy === currentUser._id) {
           // Update seen status for sent messages when receiver has seen them
           queryClient.setQueryData(["messages", userId], (old = []) =>
-            old.map((msg) =>
-              msg.sender?._id === currentUser._id
-                ? { ...msg, seen: true }
-                : msg,
-            ),
+            old.map((msg) => (msg.sender?._id === currentUser._id ? { ...msg, seen: true } : msg)),
           );
           // Also invalidate conversations to update last message status
           queryClient.invalidateQueries(["conversations"]);
@@ -136,10 +129,7 @@ const ChatPage = () => {
     },
     onSuccess: (newMessageData) => {
       // Optimistically update messages cache
-      queryClient.setQueryData(["messages", userId], (old = []) => [
-        ...old,
-        newMessageData,
-      ]);
+      queryClient.setQueryData(["messages", userId], (old = []) => [...old, newMessageData]);
       // Invalidate conversations to update last message
       queryClient.invalidateQueries(["conversations"]);
       setNewMessage("");
@@ -234,12 +224,12 @@ const ChatPage = () => {
 
   return (
     <div className="max-w-4xl mx-auto h-[calc(100vh-120px)] flex flex-col">
-      <div className="bg-mono-white dark:bg-mono-900 border border-mono-300 dark:border-mono-800 rounded-lg shadow-mono dark:shadow-mono-md flex flex-col h-full">
+      <div className="bg-mono-white dark:bg-mono-900 border border-mono-300 dark:border-mono-800 rounded-card shadow-mono dark:shadow-mono-md flex flex-col h-full">
         {/* Header */}
         <div className="border-b border-mono-300 dark:border-mono-800 p-4 flex items-center gap-4">
           <button
             onClick={() => navigate("/messages")}
-            className="text-mono-black dark:text-mono-white hover:bg-mono-100 dark:hover:bg-mono-800 p-2 rounded-lg transition-all duration-200"
+            className="text-mono-black dark:text-mono-white hover:bg-mono-100 dark:hover:bg-mono-800 p-2 rounded-btn transition-all duration-200"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
@@ -249,14 +239,8 @@ const ChatPage = () => {
             className="w-10 h-10 rounded-full object-cover border-2 border-mono-300 dark:border-mono-700"
           />
           <div className="flex-1">
-            <h2 className="font-semibold text-mono-black dark:text-mono-white">
-              {otherUser?.username}
-            </h2>
-            {isTyping && (
-              <p className="text-sm text-mono-600 dark:text-mono-500">
-                typing...
-              </p>
-            )}
+            <h2 className="font-semibold text-mono-black dark:text-mono-white">{otherUser?.username}</h2>
+            {isTyping && <p className="text-sm text-mono-600 dark:text-mono-500">typing...</p>}
           </div>
         </div>
 
@@ -270,41 +254,26 @@ const ChatPage = () => {
             messages.map((message) => {
               const isSender = message.sender._id === currentUser._id;
               return (
-                <div
-                  key={message._id}
-                  className={`flex ${
-                    isSender ? "justify-end" : "justify-start"
-                  }`}
-                >
+                <div key={message._id} className={`flex ${isSender ? "justify-end" : "justify-start"}`}>
                   <div
                     className={`max-w-[70%] ${
                       isSender
                         ? "bg-mono-black dark:bg-mono-white text-mono-white dark:text-mono-black"
                         : "bg-mono-200 dark:bg-mono-800 text-mono-black dark:text-mono-white"
-                    } rounded-lg p-3`}
+                    } rounded-card p-3`}
                   >
                     {message.image && (
-                      <img
-                        src={message.image.url}
-                        alt="Message attachment"
-                        className="rounded-lg mb-2 max-w-full"
-                      />
+                      <img src={message.image.url} alt="Message attachment" className="rounded-card mb-2 max-w-full" />
                     )}
-                    {message.message && (
-                      <p className="break-words">{message.message}</p>
-                    )}
+                    {message.message && <p className="break-words">{message.message}</p>}
                     <div
                       className={`text-xs mt-1 flex items-center gap-2 ${
-                        isSender
-                          ? "text-mono-300 dark:text-mono-700"
-                          : "text-mono-600 dark:text-mono-500"
+                        isSender ? "text-mono-300 dark:text-mono-700" : "text-mono-600 dark:text-mono-500"
                       }`}
                     >
                       <span>{format(new Date(message.createdAt), "p")}</span>
                       {isSender && (
-                        <span className={message.seen ? "text-blue-500" : ""}>
-                          {message.seen ? "✓✓" : "✓"}
-                        </span>
+                        <span className={message.seen ? "text-blue-500" : ""}>{message.seen ? "✓✓" : "✓"}</span>
                       )}
                     </div>
                   </div>
@@ -319,11 +288,7 @@ const ChatPage = () => {
         {imagePreview && (
           <div className="border-t border-mono-300 dark:border-mono-800 p-4">
             <div className="relative inline-block">
-              <img
-                src={imagePreview}
-                alt="Preview"
-                className="h-20 rounded-lg"
-              />
+              <img src={imagePreview} alt="Preview" className="h-20 rounded-card" />
               <button
                 onClick={handleRemoveImage}
                 className="absolute -top-2 -right-2 bg-mono-black dark:bg-mono-white text-mono-white dark:text-mono-black rounded-full p-1"
@@ -339,17 +304,11 @@ const ChatPage = () => {
           onSubmit={handleSendMessage}
           className="border-t border-mono-300 dark:border-mono-800 p-4 flex items-center gap-2"
         >
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileChange}
-            accept="image/*"
-            className="hidden"
-          />
+          <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="text-mono-black dark:text-mono-white hover:bg-mono-100 dark:hover:bg-mono-800 p-2 rounded-lg transition-all duration-200"
+            className="text-mono-black dark:text-mono-white hover:bg-mono-100 dark:hover:bg-mono-800 p-2 rounded-btn transition-all duration-200"
           >
             <ImageIcon className="w-5 h-5" />
           </button>
@@ -361,16 +320,13 @@ const ChatPage = () => {
               handleTyping();
             }}
             placeholder="Type a message..."
-            className="flex-1 px-4 py-2 bg-mono-100 dark:bg-mono-800 border border-mono-300 dark:border-mono-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-mono-black dark:focus:ring-mono-white text-mono-black dark:text-mono-white placeholder-mono-500"
+            className="flex-1 px-4 py-2 bg-mono-100 dark:bg-mono-800 border border-mono-300 dark:border-mono-700 rounded-input focus:outline-none focus:ring-2 focus:ring-mono-black dark:focus:ring-mono-white text-mono-black dark:text-mono-white placeholder-mono-500"
             disabled={sendMessageMutation.isLoading}
           />
           <button
             type="submit"
-            disabled={
-              sendMessageMutation.isLoading ||
-              (!newMessage.trim() && !imageFile)
-            }
-            className="bg-mono-black dark:bg-mono-white text-mono-white dark:text-mono-black hover:opacity-80 p-2 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={sendMessageMutation.isLoading || (!newMessage.trim() && !imageFile)}
+            className="bg-mono-black dark:bg-mono-white text-mono-white dark:text-mono-black hover:opacity-80 p-2 rounded-btn transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {sendMessageMutation.isLoading ? (
               <Loader2 className="w-5 h-5 animate-spin" />

@@ -2,10 +2,12 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import Card from "../common/Card";
-import { Heart, MessageCircle, Bookmark, MoreHorizontal, Trash2 } from "lucide-react";
+import { Heart, MessageCircle, Bookmark, MoreHorizontal, Trash2, ArrowRight } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useSocket } from "../../context/SocketContext";
 import api from "../../api/api";
+import { formatDistanceToNow } from "date-fns";
+import { useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 
 const Post = ({ post, onUpdate }) => {
@@ -23,6 +25,8 @@ const Post = ({ post, onUpdate }) => {
   const [showMenu, setShowMenu] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [loadingComments, setLoadingComments] = useState(false);
+
+  const queryClient = useQueryClient();
 
   const isOwnPost = post.user?._id === user?._id;
 
@@ -112,6 +116,25 @@ const Post = ({ post, onUpdate }) => {
     }
   };
 
+  const handleShare = async () => {
+    const url = `${window.location.origin}/post/${post._id}`;
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: "Check this post",
+          text: post.caption || "Interesting post!",
+          url,
+        });
+      } else {
+        await navigator.clipboard.writeText(url);
+        alert("Link copied!");
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   const focusCommentInput = () => {
     document.getElementById(`comment-input-${post._id}`)?.focus();
   };
@@ -149,6 +172,8 @@ const Post = ({ post, onUpdate }) => {
       const response = await api.delete(`/posts/delete/${post._id}`);
       if (response.data.status === "Success") {
         toast.success(response.data.message || "Post deleted successfully");
+
+        queryClient.invalidateQueries(["posts", "feed"]);
         if (onUpdate) {
           onUpdate();
         }
@@ -167,31 +192,29 @@ const Post = ({ post, onUpdate }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className="bg-mono-white dark:bg-[#1E1E1E] rounded-2xl border border-mono-200 dark:border-mono-800 shadow-lg hover:shadow-xl dark:shadow-2xl transition-all duration-300 overflow-hidden"
+      className="bg-mono-white dark:bg-mono-900 rounded-card border border-mono-200 dark:border-mono-800 shadow-lg"
     >
       {/* Post Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-mono-100 dark:border-mono-800">
+      <div className="flex items-center justify-between px-4 py-3">
         <Link to={`/profile/${post.user?._id}`} className="flex items-center space-x-3 group">
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-mono-400 to-mono-600 rounded-full blur-sm opacity-0 group-hover:opacity-30 transition-opacity duration-300"></div>
-            <img
-              src={
-                post.user?.profilePicture ||
-                "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRU0a0iDtUPUzs0GFM6DSuovK0uOE4-Sc40Pg&s"
-              }
-              alt={post.user?.username}
-              className="relative w-12 h-12 rounded-full object-cover border-2 border-mono-200 dark:border-mono-700 group-hover:border-mono-black dark:group-hover:border-mono-white transition-all duration-200 shadow-md"
-            />
-          </div>
-          <div className="space-y-1">
-            <p className="font-bold text-sm text-mono-black dark:text-mono-white group-hover:text-mono-700 dark:group-hover:text-mono-300 transition-colors duration-200">
-              {post.user?.username}
-            </p>
-            <p className="text-xs text-[#999999] dark:text-mono-500">
-              {new Date(post.createdAt).toLocaleDateString("en-GB", {
-                day: "numeric",
-                month: "short",
-                year: "numeric",
+          <img
+            src={
+              post.user?.profilePicture ||
+              "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRU0a0iDtUPUzs0GFM6DSuovK0uOE4-Sc40Pg&s"
+            }
+            alt={post.user?.username}
+            className="w-10 h-10 rounded-full object-cover"
+          />
+          <div>
+            <div className="flex items-center space-x-2">
+              <p className="font-semibold text-sm text-mono-black dark:text-mono-white group-hover:underline">
+                {post.user?.name || post.user?.username}
+              </p>
+              <p className="text-sm text-mono-500 dark:text-mono-400">@{post.user?.username}</p>
+            </div>
+            <p className="text-sm text-mono-500 dark:text-mono-400">
+              {formatDistanceToNow(new Date(post.createdAt), {
+                addSuffix: true,
               })}
             </p>
           </div>
@@ -200,24 +223,23 @@ const Post = ({ post, onUpdate }) => {
           <div className="relative">
             <button
               onClick={() => setShowMenu(!showMenu)}
-              className="text-mono-black dark:text-mono-white p-2 rounded-full hover:bg-mono-200 dark:hover:bg-mono-800 transition-all duration-200"
+              className="text-mono-600 dark:text-mono-400 p-2 rounded-full hover:bg-mono-100 dark:hover:bg-mono-800"
             >
               <MoreHorizontal className="w-5 h-5" />
             </button>
 
-            {/* Dropdown Menu */}
             {showMenu && (
               <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: -10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                transition={{ duration: 0.15 }}
-                className="absolute right-0 mt-2 w-48 bg-mono-white dark:bg-mono-900 rounded-lg shadow-mono-lg border border-mono-300 dark:border-mono-800 z-10"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.1 }}
+                className="absolute right-0 mt-2 w-40 bg-mono-white dark:bg-mono-900 rounded-input shadow-lg border border-mono-200 dark:border-mono-800 z-10"
               >
                 <button
                   onClick={handleDelete}
                   disabled={deleting}
-                  className="w-full flex items-center gap-2 px-4 py-3 text-left text-mono-black dark:text-mono-white hover:bg-mono-200 dark:hover:bg-mono-800 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors duration-200 border border-transparent hover:border-mono-black dark:hover:border-mono-white"
+                  className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 disabled:opacity-50"
                 >
                   <Trash2 className="w-4 h-4" />
                   <span>{deleting ? "Deleting..." : "Delete Post"}</span>
@@ -228,203 +250,368 @@ const Post = ({ post, onUpdate }) => {
         )}
       </div>
 
-      {/* Post Image */}
-      {/* <div className="w-full bg-mono-100 dark:bg-mono-black">
-        <img
-          src={post.image?.url}
-          alt="Post"
-          loading="lazy"
-          className="w-full object-cover"
-          style={{ maxHeight: "600px" }}
-        />
-      </div> */}
-      {/* 
-      <div className="w-full bg-mono-100 dark:bg-mono-black flex justify-center">
-  <img
-    src={post.image?.url}
-    alt="Post"
-    loading="lazy"
-    className="max-h-[600px] w-auto object-contain"
-  />
-</div> */}
-      {/* <div className="w-full flex justify-center">
-  <div className="max-w-[550px] w-full bg-mono-100 dark:bg-mono-black p-4 rounded-xl">
-    <img
-      src={post.image?.url}
-      alt="Post"
-      loading="lazy"
-      className="object-contain w-full max-h-[700px] rounded-xl"
-    />
-  </div>
-</div> */}
-
-      <div className="w-full bg-mono-100 dark:bg-mono-black flex justify-center px-4 py-4">
-        <img
-          src={post.image?.url}
-          alt="Post"
-          loading="lazy"
-          className="w-full max-w-[720px] max-h-[700px] object-contain rounded-[12px]"
-        />
-      </div>
-
-      {/* Action Buttons */}
-      <div className="flex items-center justify-between px-5 py-3 border-t border-mono-100 dark:border-mono-800">
-        <div className="flex items-center space-x-6">
-          {/* Like Button */}
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={handleLike}
-            className="hover:opacity-70 transition-opacity p-1 rounded-full"
-          >
-            <Heart
-              className={`w-6 h-6 transition-colors duration-200 ${
-                isLiked
-                  ? "fill-mono-black dark:fill-mono-white text-mono-black dark:text-mono-white"
-                  : "text-mono-black dark:text-mono-white hover:opacity-60"
-              }`}
-            />
-          </motion.button>
-
-          {/* Comment Button */}
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={focusCommentInput}
-            className="hover:opacity-70 transition-opacity p-1 rounded-full"
-          >
-            <MessageCircle className="w-6 h-6 text-mono-black dark:text-mono-white hover:opacity-60 transition-opacity duration-200" />
-          </motion.button>
-        </div>
-
-        {/* Save Button */}
-        <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          onClick={handleSave}
-          className="hover:opacity-70 transition-opacity p-1 rounded-full"
-        >
-          <Bookmark
-            className={`w-6 h-6 transition-colors duration-200 ${
-              isSaved
-                ? "fill-mono-black dark:fill-mono-white text-mono-black dark:text-mono-white"
-                : "text-mono-black dark:text-mono-white hover:opacity-60"
-            }`}
-          />
-        </motion.button>
-      </div>
-
-      {/* Likes Count */}
-      <div className="px-5 pb-3">
-        <p className="font-bold text-sm text-mono-900 dark:text-mono-100">
-          {likesCount.toLocaleString()} {likesCount === 1 ? "like" : "likes"}
-        </p>
-      </div>
-
       {/* Caption */}
       {post.caption && (
-        <div className="px-5 pb-3">
-          <p className="text-sm leading-relaxed">
-            <Link
-              to={`/profile/${post.user?._id}`}
-              className="font-bold text-mono-900 dark:text-mono-100 hover:underline mr-2 transition-all duration-200"
-            >
-              {post.user?.username}
-            </Link>
-            <span className="text-mono-700 dark:text-mono-300">{post.caption}</span>
-          </p>
+        <div className="px-4 pb-3">
+          <p className="text-mono-800 dark:text-mono-200 leading-relaxed">{post.caption}</p>
         </div>
       )}
 
-      {/* View Comments */}
-      {commentsCount > 0 && (
-        <div className="px-4 pb-2">
+      {/* Post Image */}
+      {post.image?.url && (
+        <div className="w-full px-4 pb-3">
+          <div
+            onDoubleClick={handleLike}
+            className="w-full max-w-[550px] mx-auto aspect-[4/3] bg-mono-100 dark:bg-mono-black rounded-card overflow-hidden"
+          >
+            <img
+              src={post.image.url}
+              alt="Post"
+              loading="lazy"
+              className="w-full h-full object-cover transition-transform duration-300 "
+            />
+          </div>
+        </div>
+      )}
+      {/* Action Buttons */}
+      <div className="flex items-center justify-between px-4 pb-2">
+        <div className="flex items-center space-x-6 text-mono-600 dark:text-mono-400">
+          <button
+            onClick={handleLike}
+            className="flex items-center space-x-2 hover:scale-110 hover:text-blue-500 transition-all duration-200"
+          >
+            <Heart className={`w-5 h-5 ${isLiked ? "fill-current text-blue-500" : ""}`} />
+            <span className="text-sm font-medium">{likesCount}</span>
+          </button>
           <button
             onClick={toggleComments}
-            disabled={loadingComments}
-            className="text-sm text-mono-600 dark:text-mono-500 hover:text-mono-black dark:hover:text-mono-white transition-colors duration-200 disabled:opacity-50"
+            className="flex items-center space-x-2 hover:scale-110 hover:text-blue-500 transition-all duration-200"
           >
-            {loadingComments ? "Loading comments..." : showComments ? "Hide" : "View all"}{" "}
-            {!loadingComments && `${commentsCount} ${commentsCount === 1 ? "comment" : "comments"}`}
+            <MessageCircle className="w-5 h-5" />
+            <span className="text-sm font-medium">{commentsCount}</span>
+          </button>
+          <button
+            onClick={handleShare}
+            className="flex items-center space-x-2 hover:scale-110 hover:text-green-500 transition-all duration-200"
+          >
+            <ArrowRight className="w-5 h-5" />
           </button>
         </div>
-      )}
 
-      {/* Comments List */}
+        <button
+          onClick={handleSave}
+          className="text-mono-600 dark:text-mono-400 hover:text-blue-500 dark:hover:text-blue-500 transition-colors duration-200"
+        >
+          <Bookmark className={`w-5 h-5 ${isSaved ? "fill-current text-blue-500" : ""}`} />
+        </button>
+      </div>
+
+      {/* Comments Section */}
       {showComments && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: "auto" }}
-          exit={{ opacity: 0, height: 0 }}
           transition={{ duration: 0.3 }}
-          className="px-4 pb-2 space-y-2"
+          className="border-t border-mono-200 dark:border-mono-800 pt-4 px-4 pb-2"
         >
-          {loadingComments ? (
-            <div className="flex justify-center py-4">
-              <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-mono-black dark:border-mono-white"></div>
-            </div>
-          ) : comments.length > 0 ? (
-            comments.map((comment) => (
-              <div key={comment._id} className="flex items-start space-x-2">
-                <Link to={`/profile/${comment.user?._id}`}>
-                  <img
-                    src={
-                      comment.user?.profilePicture ||
-                      "https://via.placeholder.com/32https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRU0a0iDtUPUzs0GFM6DSuovK0uOE4-Sc40Pg&s"
-                    }
-                    alt={comment.user?.username}
-                    className="w-8 h-8 rounded-full object-cover ring-2 ring-mono-300 dark:ring-mono-700 hover:ring-mono-black dark:hover:ring-mono-white transition-all duration-200"
-                  />
-                </Link>
-                <div className="flex-1">
-                  <div className="bg-mono-100 dark:bg-mono-800 rounded-lg px-3 py-2">
-                    <Link
-                      to={`/profile/${comment.user?._id}`}
-                      className="font-semibold text-sm text-mono-black dark:text-mono-white hover:underline transition-all duration-200"
-                    >
-                      {comment.user?.username}
-                    </Link>
-                    <p className="text-sm text-mono-black dark:text-mono-white">{comment.text}</p>
-                  </div>
-                  <p className="text-xs text-mono-600 dark:text-mono-500 mt-1 ml-3">
-                    {new Date(comment.createdAt).toLocaleDateString("en-GB", {
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    })}
-                  </p>
-                </div>
+          {/* Add Comment Form */}
+          <form onSubmit={handleComment} className="flex items-center space-x-3 mb-4">
+            <img
+              src={
+                user?.profilePicture ||
+                "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRU0a0iDtUPUzs0GFM6DSuovK0uOE4-Sc40Pg&s"
+              }
+              alt="Your profile"
+              className="w-8 h-8 rounded-full object-cover"
+            />
+            <input
+              id={`comment-input-${post._id}`}
+              type="text"
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              placeholder="Add a comment..."
+              className="flex-1 bg-mono-100 dark:bg-mono-800 border border-mono-200 dark:border-mono-700 rounded-full px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={submittingComment}
+            />
+            <button
+              type="submit"
+              disabled={!commentText.trim() || submittingComment}
+              className="text-blue-500 font-semibold text-sm hover:text-blue-600 disabled:text-mono-400 disabled:cursor-not-allowed"
+            >
+              {submittingComment ? "Posting..." : "Post"}
+            </button>
+          </form>
+
+          {/* Comments List */}
+          <div className="space-y-4">
+            {loadingComments ? (
+              <div className="text-center py-4">
+                <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
               </div>
-            ))
-          ) : (
-            <p className="text-sm text-mono-600 dark:text-mono-500 text-center py-2">No comments yet</p>
-          )}
+            ) : comments.length > 0 ? (
+              comments.map((comment) => (
+                <div key={comment._id} className="flex items-start space-x-3">
+                  <Link to={`/profile/${comment.user?._id}`}>
+                    <img
+                      src={comment.user?.profilePicture || "https://via.placeholder.com/32"}
+                      alt={comment.user?.username}
+                      className="w-8 h-8 rounded-full object-cover"
+                    />
+                  </Link>
+                  <div className="flex-1">
+                    <div className="bg-mono-100 dark:bg-mono-800 rounded-card px-3 py-2">
+                      <Link
+                        to={`/profile/${comment.user?._id}`}
+                        className="font-semibold text-sm text-mono-black dark:text-mono-white hover:underline"
+                      >
+                        {comment.user?.username}
+                      </Link>
+                      <p className="text-sm text-mono-800 dark:text-mono-200">{comment.text}</p>
+                    </div>
+                    <p className="text-xs text-mono-500 mt-1 ml-2">
+                      {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
+                    </p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-sm text-mono-500 text-center py-2">No comments yet. Be the first to comment!</p>
+            )}
+          </div>
         </motion.div>
       )}
-
-      {/* Add Comment Form */}
-      <form onSubmit={handleComment} className="border-t border-mono-200 dark:border-mono-800 p-4">
-        <div className="flex items-center space-x-3">
-          <input
-            id={`comment-input-${post._id}`}
-            type="text"
-            value={commentText}
-            onChange={(e) => setCommentText(e.target.value)}
-            placeholder="Add a comment..."
-            className="flex-1 outline-none text-sm bg-transparent text-mono-black dark:text-mono-white placeholder-mono-600 dark:placeholder-mono-500 focus:placeholder-mono-500 dark:focus:placeholder-mono-600 transition-colors duration-200"
-            disabled={submittingComment}
-          />
-          <button
-            type="submit"
-            disabled={!commentText.trim() || submittingComment}
-            className="text-mono-black dark:text-mono-white font-semibold text-sm hover:underline hover:opacity-70 disabled:text-mono-500 dark:disabled:text-mono-600 disabled:cursor-not-allowed disabled:hover:no-underline disabled:hover:opacity-100 transition-all duration-200"
-          >
-            {submittingComment ? "Posting..." : "Post"}
-          </button>
-        </div>
-      </form>
     </motion.div>
   );
 };
 
 export default Post;
+
+// import { motion } from "framer-motion";
+// import { Link } from "react-router-dom";
+// import { Heart, MessageCircle, Bookmark, MoreHorizontal, Trash2, ArrowRight } from "lucide-react";
+
+// const Post = ({
+//   post,
+//   isOwnPost,
+//   handleLike,
+//   toggleComments,
+//   handleSave,
+//   handleDelete,
+//   handleComment,
+//   comments,
+//   loadingComments,
+//   showComments,
+//   setShowMenu,
+//   showMenu,
+//   deleting,
+//   commentText,
+//   setCommentText,
+//   submittingComment,
+//   likesCount,
+//   commentsCount,
+//   isLiked,
+//   isSaved,
+//   user,
+// }) => {
+//   // 🔥 SHARE FUNCTION
+//   const handleShare = async () => {
+//     const url = `${window.location.origin}/post/${post._id}`;
+
+//     try {
+//       if (navigator.share) {
+//         await navigator.share({
+//           title: "Check this post",
+//           text: post.caption || "Interesting post!",
+//           url,
+//         });
+//       } else {
+//         await navigator.clipboard.writeText(url);
+//         alert("Link copied!");
+//       }
+//     } catch (err) {
+//       console.log(err);
+//     }
+//   };
+
+//   return (
+//     <motion.div
+//       initial={{ opacity: 0, y: 20 }}
+//       animate={{ opacity: 1, y: 0 }}
+//       transition={{ duration: 0.4, ease: "easeOut" }}
+//       className="bg-mono-white dark:bg-mono-900 rounded-card border border-mono-200 dark:border-mono-800 shadow-lg"
+//     >
+//       {/* HEADER */}
+//       <div className="flex items-center justify-between px-4 py-3">
+//         <Link to={`/profile/${post.user?._id}`} className="flex items-center space-x-3 group">
+//           <img
+//             src={
+//               post.user?.profilePicture ||
+//               "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRU0a0iDtUPUzs0GFM6DSuovK0uOE4-Sc40Pg&s"
+//             }
+//             alt={post.user?.username}
+//             className="w-10 h-10 rounded-full object-cover"
+//           />
+//           <div className="flex items-center space-x-2 flex-wrap">
+//             <p className="font-semibold text-sm text-mono-black dark:text-mono-white group-hover:underline transition">
+//               {post.user?.name || post.user?.username}
+//             </p>
+//             <p className="text-sm text-mono-500 dark:text-mono-400">@{post.user?.username}</p>
+//             <p className="text-sm text-mono-500 dark:text-mono-400">
+//               ·{" "}
+//               {formatDistanceToNow(new Date(post.createdAt), {
+//                 addSuffix: true,
+//               })}
+//             </p>
+//           </div>
+//         </Link>
+
+//         {isOwnPost && (
+//           <div className="relative">
+//             <button
+//               onClick={() => setShowMenu(!showMenu)}
+//               className="p-2 rounded-full hover:bg-mono-100 dark:hover:bg-mono-800"
+//             >
+//               <MoreHorizontal className="w-5 h-5" />
+//             </button>
+
+//             {showMenu && (
+//               <motion.div
+//                 initial={{ opacity: 0, scale: 0.95 }}
+//                 animate={{ opacity: 1, scale: 1 }}
+//                 className="absolute right-0 mt-2 w-40 bg-mono-white dark:bg-mono-900 rounded-input shadow-lg border z-10"
+//               >
+//                 <button
+//                   onClick={handleDelete}
+//                   disabled={deleting}
+//                   className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10"
+//                 >
+//                   <Trash2 className="w-4 h-4" />
+//                   {deleting ? "Deleting..." : "Delete Post"}
+//                 </button>
+//               </motion.div>
+//             )}
+//           </div>
+//         )}
+//       </div>
+
+//       {/* CAPTION */}
+//       {post.caption && (
+//         <div className="px-4 pb-3">
+//           <p className="text-mono-800 dark:text-mono-200 leading-relaxed">{post.caption}</p>
+//         </div>
+//       )}
+
+//       {/* IMAGE (FIXED 🔥) */}
+//       {post.image?.url && (
+//         <div className="px-4 pb-3">
+//           <div
+//             onDoubleClick={handleLike}
+//             className="w-full max-h-[500px] overflow-hidden rounded-card border border-mono-200 dark:border-mono-800"
+//           >
+//             <img
+//               src={post.image.url}
+//               alt="Post"
+//               loading="lazy"
+//               className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+//             />
+//           </div>
+//         </div>
+//       )}
+
+//       {/* ACTION BUTTONS */}
+//       <div className="flex items-center justify-between px-4 pb-2">
+//         <div className="flex items-center space-x-6 text-mono-600 dark:text-mono-400">
+//           {/* LIKE */}
+//           <button
+//             onClick={handleLike}
+//             className="flex items-center space-x-2 hover:scale-110 hover:text-red-500 transition-all duration-200"
+//           >
+//             <Heart className={`w-5 h-5 ${isLiked ? "fill-current text-red-500" : ""}`} />
+//             <span className="text-sm font-medium">{likesCount}</span>
+//           </button>
+
+//           {/* COMMENT */}
+//           <button
+//             onClick={toggleComments}
+//             className="flex items-center space-x-2 hover:scale-110 hover:text-blue-500 transition-all duration-200"
+//           >
+//             <MessageCircle className="w-5 h-5" />
+//             <span className="text-sm font-medium">{commentsCount}</span>
+//           </button>
+
+//           {/* SHARE */}
+//           <button
+//             onClick={handleShare}
+//             className="flex items-center space-x-2 hover:scale-110 hover:text-green-500 transition-all duration-200"
+//           >
+//             <ArrowRight className="w-5 h-5" />
+//           </button>
+//         </div>
+
+//         {/* SAVE */}
+//         <button onClick={handleSave} className="hover:text-yellow-500 transition-colors duration-200">
+//           <Bookmark className={`w-5 h-5 ${isSaved ? "fill-current text-yellow-500" : ""}`} />
+//         </button>
+//       </div>
+
+//       {/* COMMENTS */}
+//       {showComments && (
+//         <motion.div
+//           initial={{ opacity: 0, height: 0 }}
+//           animate={{ opacity: 1, height: "auto" }}
+//           className="border-t border-mono-200 dark:border-mono-800 pt-4 px-4 pb-2"
+//         >
+//           {/* ADD COMMENT */}
+//           <form onSubmit={handleComment} className="flex items-center space-x-3 mb-4">
+//             <img
+//               src={user?.profilePicture || "https://via.placeholder.com/32"}
+//               alt=""
+//               className="w-8 h-8 rounded-full object-cover"
+//             />
+//             <input
+//               type="text"
+//               value={commentText}
+//               onChange={(e) => setCommentText(e.target.value)}
+//               placeholder="Add a comment..."
+//               className="flex-1 bg-mono-100 dark:bg-mono-800 rounded-full px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+//             />
+//             <button
+//               type="submit"
+//               disabled={!commentText.trim() || submittingComment}
+//               className="text-blue-500 font-semibold text-sm"
+//             >
+//               {submittingComment ? "Posting..." : "Post"}
+//             </button>
+//           </form>
+
+//           {/* COMMENTS LIST */}
+//           <div className="space-y-4">
+//             {loadingComments ? (
+//               <div className="text-center py-4">
+//                 <div className="animate-spin h-6 w-6 border-t-2 border-blue-500 mx-auto rounded-full"></div>
+//               </div>
+//             ) : comments.length > 0 ? (
+//               comments.map((comment) => (
+//                 <div key={comment._id} className="flex space-x-3">
+//                   <img
+//                     src={comment.user?.profilePicture || "https://via.placeholder.com/32"}
+//                     alt=""
+//                     className="w-8 h-8 rounded-full object-cover"
+//                   />
+//                   <div>
+//                     <p className="font-semibold text-sm">{comment.user?.username}</p>
+//                     <p className="text-sm">{comment.text}</p>
+//                   </div>
+//                 </div>
+//               ))
+//             ) : (
+//               <p className="text-sm text-center">No comments yet</p>
+//             )}
+//           </div>
+//         </motion.div>
+//       )}
+//     </motion.div>
+//   );
+// };
+
+// export default Post;

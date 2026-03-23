@@ -77,58 +77,50 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-mono-white dark:bg-mono-black border-b border-mono-200 dark:border-mono-900 sticky top-0 z-50 transition-colors duration-300 shadow-md">
+    <nav className="bg-mono-white dark:bg-mono-black border-b border-mono-200 dark:border-mono-800 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <NavLink
-            to="/"
-            className="text-2xl font-bold text-mono-black dark:text-mono-white hover:text-mono-600 dark:hover:text-mono-400 transition-all duration-200 tracking-tight hover:scale-105"
-          >
-            Socially
+          <NavLink to="/" className="text-2xl font-bold text-mono-black dark:text-mono-white">
+            Socially.
           </NavLink>
 
-          {/* Search Bar - Desktop */}
-          <div className="hidden md:flex flex-1 max-w-md mx-8" ref={searchRef}>
+          {/* Search Bar */}
+          <div className="hidden md:flex flex-1 max-w-xs mx-8" ref={searchRef}>
             <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-mono-500 dark:text-mono-400 w-5 h-5 transition-colors" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-mono-500 dark:text-mono-400 w-5 h-5" />
               <input
                 type="text"
-                placeholder="Search users..."
+                placeholder="Search"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => searchQuery && setShowResults(true)}
-                className="w-full pl-10 pr-4 py-2.5 bg-mono-50 dark:bg-mono-900 border border-mono-200 dark:border-mono-700 rounded-full focus:outline-none focus:ring-2 focus:ring-mono-black dark:focus:ring-mono-white focus:border-transparent hover:border-mono-400 dark:hover:border-mono-600 hover:shadow-md text-mono-black dark:text-mono-white placeholder-mono-500 dark:placeholder-mono-400 transition-all duration-200"
+                className="w-full pl-10 pr-4 py-2 bg-mono-50 dark:bg-mono-900 border border-mono-200 dark:border-mono-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-mono-black dark:focus:ring-mono-white text-sm"
               />
 
-              {/* Search Results Dropdown */}
               {showResults && searchQuery && (
-                <div className="absolute top-full mt-2 w-full bg-mono-white dark:bg-mono-900 border border-mono-200 dark:border-mono-700 rounded-2xl shadow-xl max-h-96 overflow-y-auto z-50">
+                <div className="absolute top-full mt-2 w-full bg-mono-white dark:bg-mono-900 border border-mono-200 dark:border-mono-700 rounded-lg shadow-lg max-h-80 overflow-y-auto z-50">
                   {isSearching ? (
-                    <div className="p-4 text-center text-mono-600 dark:text-mono-400">
-                      <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2" />
-                      <p>Searching...</p>
+                    <div className="p-3 text-center text-sm">
+                      <Loader2 className="w-4 h-4 animate-spin mx-auto" />
                     </div>
                   ) : searchResults.length === 0 ? (
-                    <div className="p-4 text-center text-mono-600 dark:text-mono-400">No users found</div>
+                    <div className="p-3 text-center text-sm">No users found</div>
                   ) : (
-                    <div className="py-2">
+                    <div className="py-1">
                       {searchResults.map((searchUser) => (
                         <button
                           key={searchUser._id}
                           onClick={() => handleUserClick(searchUser._id)}
-                          className="w-full flex items-center gap-3 px-4 py-3 hover:bg-mono-50 dark:hover:bg-mono-800 transition-colors"
+                          className="w-full flex items-center gap-3 px-3 py-2 hover:bg-mono-50 dark:hover:bg-mono-800"
                         >
                           <img
                             src={searchUser.profilePicture || "https://via.placeholder.com/40"}
                             alt={searchUser.username}
-                            className="w-10 h-10 rounded-full object-cover border-2 border-mono-200 dark:border-mono-700"
+                            className="w-8 h-8 rounded-full object-cover"
                           />
-                          <div className="flex-1 text-left">
-                            <p className="font-semibold text-mono-black dark:text-mono-white">{searchUser.username}</p>
-                            {searchUser.bio && (
-                              <p className="text-sm text-mono-600 dark:text-mono-400 truncate">{searchUser.bio}</p>
-                            )}
+                          <div className="text-left">
+                            <p className="font-semibold text-sm">{searchUser.username}</p>
                           </div>
                         </button>
                       ))}
@@ -140,119 +132,40 @@ const Navbar = () => {
           </div>
 
           {/* Action Icons */}
-          <div className="flex items-center space-x-2 sm:space-x-4">
-            {/* Dark Mode Toggle */}
+          <div className="flex items-center space-x-5">
             <DarkModeToggle />
-
-            {/* Notification Bell */}
-            <NotificationBell />
-
-            {/* Home */}
             <NavLink
               to="/"
               className={({ isActive }) =>
-                `flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md ${
+                `p-2 rounded-lg hover:bg-mono-100 dark:hover:bg-mono-800 ${
                   isActive
-                    ? "text-mono-white dark:text-mono-black bg-mono-black dark:bg-mono-white scale-105"
-                    : "text-mono-black dark:text-mono-white hover:bg-mono-100 dark:hover:bg-mono-900 hover:scale-105"
+                    ? "text-mono-black dark:text-mono-white bg-mono-100 dark:bg-mono-800"
+                    : "text-mono-500 dark:text-mono-400"
                 }`
               }
-              title="Home"
             >
               <Home className="w-6 h-6" />
-              <span className="hidden lg:inline font-semibold">Home</span>
             </NavLink>
-
-            {/* Create Post */}
             <button
               onClick={handleCreatePost}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-mono-black dark:text-mono-white hover:bg-mono-100 dark:hover:bg-mono-900 transition-all duration-200 shadow-sm hover:shadow-md hover:scale-105"
-              title="Create Post"
+              className="p-2 rounded-lg text-mono-500 dark:text-mono-400 hover:bg-mono-100 dark:hover:bg-mono-800 hover:text-mono-black dark:hover:text-mono-white"
             >
               <PlusSquare className="w-6 h-6" />
-              <span className="hidden lg:inline font-semibold">Create</span>
             </button>
-
-            {/* Messages */}
             <MessageIcon />
-
-            {/* Profile */}
+            <NotificationBell />
             <NavLink
               to={`/profile/${user?._id}`}
               className={({ isActive }) =>
-                `flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md group ${
+                `p-2 rounded-lg hover:bg-mono-100 dark:hover:bg-mono-800 ${
                   isActive
-                    ? "text-mono-white dark:text-mono-black bg-mono-black dark:bg-mono-white scale-105"
-                    : "text-mono-black dark:text-mono-white hover:bg-mono-100 dark:hover:bg-mono-900 hover:scale-105"
+                    ? "text-mono-black dark:text-mono-white bg-mono-100 dark:bg-mono-800"
+                    : "text-mono-500 dark:text-mono-400"
                 }`
               }
-              title="Profile"
             >
-              {user?.profilePicture ? (
-                <div className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-br from-mono-400 to-mono-600 rounded-full blur-sm opacity-0 group-hover:opacity-30 transition-opacity duration-200" />
-                  <img
-                    src={user.profilePicture}
-                    alt={user.username}
-                    className="relative w-8 h-8 rounded-full object-cover border-2 border-mono-200 dark:border-mono-800 group-hover:border-mono-black dark:group-hover:border-mono-white transition-colors duration-200 shadow-md"
-                  />
-                </div>
-              ) : (
-                <User className="w-6 h-6" />
-              )}
-              <span className="hidden lg:inline font-semibold">{user?.username}</span>
+              <User className="w-6 h-6" />
             </NavLink>
-          </div>
-        </div>
-
-        {/* Search Bar - Mobile */}
-        <div className="md:hidden pb-3">
-          <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-mono-500 dark:text-mono-400 w-5 h-5" />
-            <input
-              type="text"
-              placeholder="Search users..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onFocus={() => searchQuery && setShowResults(true)}
-              className="w-full pl-10 pr-4 py-2.5 bg-mono-50 dark:bg-mono-900 border border-mono-200 dark:border-mono-700 rounded-full focus:outline-none focus:ring-2 focus:ring-mono-black dark:focus:ring-mono-white focus:border-transparent hover:shadow-md text-mono-black dark:text-mono-white placeholder-mono-500 dark:placeholder-mono-400 transition-all duration-200"
-            />
-
-            {/* Mobile Search Results */}
-            {showResults && searchQuery && (
-              <div className="absolute top-full mt-2 w-full bg-mono-white dark:bg-mono-900 border border-mono-200 dark:border-mono-700 rounded-2xl shadow-xl max-h-80 overflow-y-auto z-50 left-0 right-0">
-                {isSearching ? (
-                  <div className="p-4 text-center text-mono-600 dark:text-mono-400">
-                    <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2" />
-                    <p>Searching...</p>
-                  </div>
-                ) : searchResults.length === 0 ? (
-                  <div className="p-4 text-center text-mono-600 dark:text-mono-400">No users found</div>
-                ) : (
-                  <div className="py-2">
-                    {searchResults.map((searchUser) => (
-                      <button
-                        key={searchUser._id}
-                        onClick={() => handleUserClick(searchUser._id)}
-                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-mono-50 dark:hover:bg-mono-800 transition-colors"
-                      >
-                        <img
-                          src={searchUser.profilePicture || "https://via.placeholder.com/40"}
-                          alt={searchUser.username}
-                          className="w-10 h-10 rounded-full object-cover border-2 border-mono-200 dark:border-mono-700"
-                        />
-                        <div className="flex-1 text-left">
-                          <p className="font-semibold text-mono-black dark:text-mono-white">{searchUser.username}</p>
-                          {searchUser.bio && (
-                            <p className="text-sm text-mono-600 dark:text-mono-400 truncate">{searchUser.bio}</p>
-                          )}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
           </div>
         </div>
       </div>

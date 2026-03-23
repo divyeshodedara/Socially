@@ -4,6 +4,12 @@ export default {
   darkMode: "class", // Enable class-based dark mode
   theme: {
     extend: {
+      borderRadius: {
+        card: "16px", // for cards, modals, posts
+        input: "10px", // for all form inputs
+        btn: "10px", // for all buttons
+        pill: "9999px", // for badges and tags
+      },
       colors: {
         // Pure monochrome palette - black and white only
         mono: {

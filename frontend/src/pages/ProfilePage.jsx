@@ -148,7 +148,7 @@ const ProfilePage = () => {
   if (error?.response?.status === 429) {
     return (
       <div className="max-w-5xl mx-auto">
-        <div className="bg-mono-white dark:bg-mono-900 rounded-2xl border border-mono-200 dark:border-mono-800 p-8 shadow-xl hover:shadow-2xl transition-shadow duration-300">
+        <div className="bg-mono-white dark:bg-mono-900 rounded-card border border-mono-200 dark:border-mono-800 p-8 shadow-xl hover:shadow-2xl transition-shadow duration-300">
           <div className="flex flex-col items-center text-center group">
             <div className="relative mb-6">
               <div className="absolute inset-0 bg-gradient-to-br from-mono-400 to-mono-600 rounded-full blur-xl opacity-20 group-hover:opacity-30 transition-opacity duration-300" />
@@ -164,13 +164,13 @@ const ProfilePage = () => {
             <div className="flex gap-4">
               <button
                 onClick={() => window.location.reload()}
-                className="px-6 py-3 bg-mono-black dark:bg-mono-white text-mono-white dark:text-mono-black font-semibold rounded-xl hover:scale-105 transform transition-all duration-200 shadow-lg hover:shadow-xl"
+                className="px-6 py-3 bg-mono-black dark:bg-mono-white text-mono-white dark:text-mono-black font-semibold rounded-btn hover:scale-105 transform transition-all duration-200 shadow-lg hover:shadow-xl"
               >
                 Try Again
               </button>
               <button
                 onClick={() => navigate("/")}
-                className="px-6 py-3 bg-mono-200 dark:bg-mono-800 text-mono-black dark:text-mono-white font-semibold rounded-xl hover:scale-105 transform transition-all duration-200 shadow-lg hover:shadow-xl"
+                className="px-6 py-3 bg-mono-200 dark:bg-mono-800 text-mono-black dark:text-mono-white font-semibold rounded-btn hover:scale-105 transform transition-all duration-200 shadow-lg hover:shadow-xl"
               >
                 Go Home
               </button>
@@ -185,7 +185,7 @@ const ProfilePage = () => {
     const errorMessage = error?.message || error?.response?.data?.message || "Profile not found";
     return (
       <div className="max-w-5xl mx-auto">
-        <div className="bg-mono-white dark:bg-mono-900 rounded-2xl border border-mono-200 dark:border-mono-800 p-8 shadow-xl hover:shadow-2xl transition-shadow duration-300">
+        <div className="bg-mono-white dark:bg-mono-900 rounded-card border border-mono-200 dark:border-mono-800 p-8 shadow-xl hover:shadow-2xl transition-shadow duration-300">
           <div className="flex flex-col items-center text-center">
             <div className="text-6xl mb-6">😕</div>
             <h2 className="text-2xl font-bold text-mono-black dark:text-mono-white mb-3">{errorMessage}</h2>
@@ -194,7 +194,7 @@ const ProfilePage = () => {
                 queryClient.invalidateQueries(["user", id]);
                 queryClient.invalidateQueries(["posts", "user", id]);
               }}
-              className="mt-4 px-6 py-3 bg-mono-black dark:bg-mono-white text-mono-white dark:text-mono-black font-semibold rounded-xl hover:scale-105 transform transition-all duration-200 shadow-lg hover:shadow-xl"
+              className="mt-4 px-6 py-3 bg-mono-black dark:bg-mono-white text-mono-white dark:text-mono-black font-semibold rounded-btn hover:scale-105 transform transition-all duration-200 shadow-lg hover:shadow-xl"
             >
               Try Again
             </button>
@@ -207,7 +207,7 @@ const ProfilePage = () => {
   return (
     <div className="max-w-5xl mx-auto">
       {/* Profile Header */}
-      <div className="bg-mono-white dark:bg-mono-900 rounded-2xl border border-mono-200 dark:border-mono-800 p-8 mb-6 shadow-xl hover:shadow-2xl transition-shadow duration-300">
+      <div className="bg-mono-white dark:bg-mono-900 rounded-card border border-mono-200 dark:border-mono-800 p-8 mb-6 shadow-xl hover:shadow-2xl transition-shadow duration-300">
         <div className="flex flex-col md:flex-row gap-8">
           {/* Profile Picture */}
           <div className="flex justify-center md:justify-start group">
@@ -234,14 +234,14 @@ const ProfilePage = () => {
                 <div className="flex gap-3">
                   <Link
                     to="/edit-profile"
-                    className="flex items-center gap-2 px-5 py-2.5 border-2 border-mono-200 dark:border-mono-700 rounded-xl hover:bg-mono-50 dark:hover:bg-mono-800 text-mono-black dark:text-mono-white transition-all duration-200 font-semibold hover:scale-105 shadow-sm hover:shadow-md"
+                    className="flex items-center gap-2 px-5 py-2.5 border-2 border-mono-200 dark:border-mono-700 rounded-btn hover:bg-mono-50 dark:hover:bg-mono-800 text-mono-black dark:text-mono-white transition-all duration-200 font-semibold hover:scale-105 shadow-sm hover:shadow-md"
                   >
                     <Settings className="w-5 h-5" />
                     <span>Edit Profile</span>
                   </Link>
                   <button
                     onClick={handleLogout}
-                    className="flex items-center gap-2 px-5 py-2.5 border-2 border-mono-200 dark:border-mono-700 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-500 dark:hover:border-red-500 text-mono-black dark:text-mono-white hover:text-red-600 dark:hover:text-red-400 transition-all duration-200 font-semibold hover:scale-105 shadow-sm hover:shadow-md"
+                    className="flex items-center gap-2 px-5 py-2.5 border-2 border-mono-200 dark:border-mono-700 rounded-btn hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-500 dark:hover:border-red-500 text-mono-black dark:text-mono-white hover:text-red-600 dark:hover:text-red-400 transition-all duration-200 font-semibold hover:scale-105 shadow-sm hover:shadow-md"
                   >
                     <LogOut className="w-5 h-5" />
                     <span>Logout</span>
@@ -252,7 +252,7 @@ const ProfilePage = () => {
                   <button
                     onClick={isFollowing ? handleUnfollow : handleFollow}
                     disabled={followLoading}
-                    className={`px-6 py-2.5 rounded-xl font-bold transition-all duration-200 disabled:opacity-50 shadow-sm hover:shadow-md hover:scale-105 ${
+                    className={`px-6 py-2.5 rounded-btn font-bold transition-all duration-200 disabled:opacity-50 shadow-sm hover:shadow-md hover:scale-105 ${
                       isFollowing
                         ? "bg-mono-white dark:bg-mono-black border-2 border-mono-200 dark:border-mono-700 hover:bg-mono-50 dark:hover:bg-mono-900 text-mono-black dark:text-mono-white"
                         : "bg-mono-black dark:bg-mono-white hover:bg-mono-700 dark:hover:bg-mono-300 text-mono-white dark:text-mono-black"
@@ -262,7 +262,7 @@ const ProfilePage = () => {
                   </button>
                   <button
                     onClick={() => navigate(`/messages/${id}`)}
-                    className="flex items-center gap-2 px-5 py-2.5 border-2 border-mono-200 dark:border-mono-700 rounded-xl hover:bg-mono-50 dark:hover:bg-mono-800 text-mono-black dark:text-mono-white transition-all duration-200 font-semibold hover:scale-105 shadow-sm hover:shadow-md"
+                    className="flex items-center gap-2 px-5 py-2.5 border-2 border-mono-200 dark:border-mono-700 rounded-btn hover:bg-mono-50 dark:hover:bg-mono-800 text-mono-black dark:text-mono-white transition-all duration-200 font-semibold hover:scale-105 shadow-sm hover:shadow-md"
                   >
                     <MessageCircle className="w-5 h-5" />
                     <span>Message</span>
@@ -309,7 +309,7 @@ const ProfilePage = () => {
       </div>
 
       {/* Posts Section */}
-      <div className="bg-mono-white dark:bg-mono-900 rounded-2xl border border-mono-200 dark:border-mono-800 shadow-xl">
+      <div className="bg-mono-white dark:bg-mono-900 rounded-card border border-mono-200 dark:border-mono-800 shadow-xl">
         {/* Tabs */}
         <div className="flex border-b border-mono-200 dark:border-mono-800">
           <button
@@ -355,7 +355,7 @@ const ProfilePage = () => {
                   <div
                     key={post._id}
                     onClick={() => navigate("/", { state: { postId: post._id } })}
-                    className="relative group overflow-hidden bg-mono-100 dark:bg-mono-800 hover:opacity-95 transition-all duration-200 rounded-xl aspect-square cursor-pointer"
+                    className="relative group overflow-hidden bg-mono-100 dark:bg-mono-800 hover:opacity-95 transition-all duration-200 rounded-card aspect-square cursor-pointer"
                   >
                     <img src={post.image?.url} alt="Post" className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
@@ -386,7 +386,7 @@ const ProfilePage = () => {
                 <div
                   key={post._id}
                   onClick={() => navigate("/", { state: { postId: post._id } })}
-                  className="relative group overflow-hidden bg-mono-100 dark:bg-mono-800 hover:opacity-95 transition-all duration-200 rounded-xl aspect-square cursor-pointer"
+                  className="relative group overflow-hidden bg-mono-100 dark:bg-mono-800 hover:opacity-95 transition-all duration-200 rounded-card aspect-square cursor-pointer"
                 >
                   <img src={post.image?.url} alt="Saved Post" className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">

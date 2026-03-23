@@ -93,8 +93,7 @@ const EditProfilePage = () => {
         navigate(`/profile/${user._id}`);
       }
     } catch (error) {
-      const message =
-        error.response?.data?.message || "Failed to update profile";
+      const message = error.response?.data?.message || "Failed to update profile";
       toast.error(message);
     } finally {
       setSubmitting(false);
@@ -115,21 +114,17 @@ const EditProfilePage = () => {
       <div className="flex items-center gap-4 mb-8">
         <button
           onClick={() => navigate(-1)}
-          className="p-2 rounded-lg hover:bg-mono-100 dark:hover:bg-mono-900 text-mono-600 dark:text-mono-400 hover:text-mono-black dark:hover:text-mono-white transition-all duration-200"
+          className="p-2 rounded-btn hover:bg-mono-100 dark:hover:bg-mono-900 text-mono-600 dark:text-mono-400 hover:text-mono-black dark:hover:text-mono-white transition-all duration-200"
         >
           <ArrowLeft className="w-6 h-6" />
         </button>
         <div>
-          <h1 className="text-3xl font-bold text-mono-black dark:text-mono-white">
-            Edit Profile
-          </h1>
-          <p className="text-sm text-mono-600 dark:text-mono-400 mt-1">
-            Customize your public profile
-          </p>
+          <h1 className="text-3xl font-bold text-mono-black dark:text-mono-white">Edit Profile</h1>
+          <p className="text-sm text-mono-600 dark:text-mono-400 mt-1">Customize your public profile</p>
         </div>
       </div>
 
-      <div className="bg-mono-white dark:bg-mono-900 rounded-2xl border border-mono-200 dark:border-mono-800 shadow-lg dark:shadow-2xl overflow-hidden">
+      <div className="bg-mono-white dark:bg-mono-900 rounded-card border border-mono-200 dark:border-mono-800 shadow-lg dark:shadow-2xl overflow-hidden">
         {/* Form */}
         <form onSubmit={handleSubmit}>
           {/* Profile Picture Section */}
@@ -158,12 +153,8 @@ const EditProfilePage = () => {
                 </label>
               </div>
               <div className="text-center">
-                <p className="text-sm font-medium text-mono-700 dark:text-mono-300">
-                  Profile Picture
-                </p>
-                <p className="text-xs text-mono-500 dark:text-mono-500 mt-1">
-                  JPG, PNG or GIF. Max size 5MB
-                </p>
+                <p className="text-sm font-medium text-mono-700 dark:text-mono-300">Profile Picture</p>
+                <p className="text-xs text-mono-500 dark:text-mono-500 mt-1">JPG, PNG or GIF. Max size 5MB</p>
               </div>
             </div>
           </div>
@@ -172,15 +163,13 @@ const EditProfilePage = () => {
           <div className="p-8 space-y-8">
             {/* Username (Read-only) */}
             <div>
-              <label className="block text-sm font-semibold text-mono-900 dark:text-mono-100 mb-2">
-                Username
-              </label>
+              <label className="block text-sm font-semibold text-mono-900 dark:text-mono-100 mb-2">Username</label>
               <div className="relative">
                 <input
                   type="text"
                   value={formData.username}
                   disabled
-                  className="w-full px-4 py-3 bg-mono-50 dark:bg-mono-950 border-2 border-mono-200 dark:border-mono-800 rounded-xl text-mono-500 dark:text-mono-500 cursor-not-allowed font-medium"
+                  className="w-full px-4 py-3 bg-mono-50 dark:bg-mono-950 border-2 border-mono-200 dark:border-mono-800 rounded-input text-mono-500 dark:text-mono-500 cursor-not-allowed font-medium"
                 />
                 <div className="absolute right-3 top-1/2 -translate-y-1/2">
                   <span className="text-xs bg-mono-200 dark:bg-mono-800 px-2 py-1 rounded-md text-mono-600 dark:text-mono-400">
@@ -197,17 +186,12 @@ const EditProfilePage = () => {
             {/* Bio */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label
-                  htmlFor="bio"
-                  className="text-sm font-semibold text-mono-900 dark:text-mono-100"
-                >
+                <label htmlFor="bio" className="text-sm font-semibold text-mono-900 dark:text-mono-100">
                   Bio
                 </label>
                 <span
                   className={`text-xs font-medium transition-colors ${
-                    formData.bio.length > 140
-                      ? "text-red-500"
-                      : "text-mono-500 dark:text-mono-500"
+                    formData.bio.length > 140 ? "text-red-500" : "text-mono-500 dark:text-mono-500"
                   }`}
                 >
                   {formData.bio.length}/150
@@ -220,13 +204,12 @@ const EditProfilePage = () => {
                 onChange={handleChange}
                 rows={5}
                 maxLength={150}
-                className="w-full px-4 py-3 bg-mono-white dark:bg-mono-900 border-2 border-mono-200 dark:border-mono-700 rounded-xl resize-none text-mono-900 dark:text-mono-100 placeholder-mono-400 dark:placeholder-mono-500 focus:outline-none focus:ring-2 focus:ring-mono-black dark:focus:ring-mono-white focus:border-transparent transition-all duration-200"
+                className="w-full px-4 py-3 bg-mono-white dark:bg-mono-900 border-2 border-mono-200 dark:border-mono-700 rounded-input resize-none text-mono-900 dark:text-mono-100 placeholder-mono-400 dark:placeholder-mono-500 focus:outline-none focus:ring-2 focus:ring-mono-black dark:focus:ring-mono-white focus:border-transparent transition-all duration-200"
                 placeholder="Tell the world about yourself..."
                 disabled={submitting}
               />
               <p className="text-xs text-mono-500 dark:text-mono-500 mt-2">
-                Share your story, interests, or anything you'd like others to
-                know
+                Share your story, interests, or anything you'd like others to know
               </p>
             </div>
           </div>
@@ -237,7 +220,7 @@ const EditProfilePage = () => {
               type="button"
               onClick={() => navigate(-1)}
               disabled={submitting}
-              className="flex-1 px-6 py-3 bg-mono-white dark:bg-mono-900 text-mono-700 dark:text-mono-300 font-semibold rounded-xl border-2 border-mono-200 dark:border-mono-800 hover:bg-mono-100 dark:hover:bg-mono-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              className="flex-1 px-6 py-3 bg-mono-white dark:bg-mono-900 text-mono-700 dark:text-mono-300 font-semibold rounded-btn border-2 border-mono-200 dark:border-mono-800 hover:bg-mono-100 dark:hover:bg-mono-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
             >
               Cancel
             </button>

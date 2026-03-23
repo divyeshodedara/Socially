@@ -96,7 +96,7 @@ const NotificationBell = () => {
               <img
                 src={notification.post.image.url}
                 alt="Post"
-                className="w-12 h-12 rounded-lg object-cover shadow-md flex-shrink-0"
+                className="w-12 h-12 rounded-card object-cover shadow-md flex-shrink-0"
               />
             )}
           </div>
@@ -126,7 +126,7 @@ const NotificationBell = () => {
               <img
                 src={notification.post.image.url}
                 alt="Post"
-                className="w-12 h-12 rounded-lg object-cover shadow-md flex-shrink-0"
+                className="w-12 h-12 rounded-card object-cover shadow-md flex-shrink-0"
               />
             )}
           </div>
@@ -164,14 +164,18 @@ const NotificationBell = () => {
       {/* Bell Icon */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2.5 rounded-xl hover:bg-mono-100 dark:hover:bg-mono-800 transition-all duration-200 hover:scale-105"
+        className={`relative p-2 rounded-btn hover:bg-mono-100 dark:hover:bg-mono-800 ${
+          isOpen
+            ? "text-mono-black dark:text-mono-white bg-mono-100 dark:bg-mono-800"
+            : "text-mono-500 dark:text-mono-400"
+        }`}
       >
-        <Bell className="w-6 h-6 text-mono-black dark:text-mono-white" />
+        <Bell className="w-6 h-6" />
         {unreadCount > 0 && (
           <motion.span
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            className="absolute -top-1 -right-1 bg-gradient-to-br from-red-500 to-red-600 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center shadow-lg ring-2 ring-mono-white dark:ring-mono-black"
+            className="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold rounded-full h-4 w-4 flex items-center justify-center"
           >
             {unreadCount > 9 ? "9+" : unreadCount}
           </motion.span>
@@ -186,7 +190,7 @@ const NotificationBell = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="absolute right-0 mt-3 w-96 overflow-hidden bg-mono-white dark:bg-mono-900 border border-mono-200 dark:border-mono-800 rounded-2xl shadow-2xl z-50"
+            className="absolute right-0 mt-3 w-96 overflow-hidden bg-mono-white dark:bg-mono-900 border border-mono-200 dark:border-mono-800 rounded-card shadow-2xl z-50"
           >
             {/* Header */}
             <div className="sticky top-0 bg-gradient-to-r from-mono-50 to-mono-100 dark:from-mono-900 dark:to-mono-950 border-b border-mono-200 dark:border-mono-800 p-4 flex items-center justify-between z-10">

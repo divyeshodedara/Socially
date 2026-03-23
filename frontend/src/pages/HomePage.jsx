@@ -120,7 +120,7 @@ const HomePage = () => {
   if (isError && posts.length === 0) {
     const message = error?.response?.data?.message || error?.message || "Failed to fetch posts";
     return (
-      <div className="bg-mono-100 dark:bg-mono-900 border border-mono-300 dark:border-mono-800 rounded-lg p-6 text-center">
+      <div className="bg-mono-100 dark:bg-mono-900 border border-mono-300 dark:border-mono-800 rounded-card p-6 text-center">
         <p className="text-mono-black dark:text-mono-white mb-4">{message}</p>
         <button onClick={handlePostUpdate} className="btn-primary">
           Try Again
@@ -133,7 +133,7 @@ const HomePage = () => {
     <div>
       {/* Main Feed */}
       {posts.length === 0 && !isLoading ? (
-        <div className="bg-mono-white dark:bg-mono-900 rounded-lg border border-mono-300 dark:border-mono-800 p-8 text-center">
+        <div className="bg-mono-white dark:bg-mono-900 rounded-card border border-mono-300 dark:border-mono-800 p-8 text-center">
           <p className="text-mono-black dark:text-mono-white mb-4">No posts to display yet.</p>
           <p className="text-sm text-mono-600 dark:text-mono-500">
             Follow some users or create your first post to see content here!
@@ -142,7 +142,7 @@ const HomePage = () => {
       ) : (
         <div className="space-y-6">
           {posts.map((post) => (
-            <div key={post._id} id={`post-${post._id}`} className="transition-all duration-300 rounded-2xl">
+            <div key={post._id} id={`post-${post._id}`} className="transition-all duration-300 rounded-card">
               <Post post={post} onUpdate={handlePostUpdate} />
             </div>
           ))}

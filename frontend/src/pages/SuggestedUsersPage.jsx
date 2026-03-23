@@ -78,23 +78,20 @@ const SuggestedUsersPage = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6">
+    <div className="max-w-2xl mx-auto px-4 py-6">
       {/* Header */}
-      <div className="flex items-center gap-4 mb-8">
+      <div className="flex items-center gap-4 mb-6">
         <button
           onClick={() => navigate(-1)}
           className="p-2 rounded-lg hover:bg-mono-100 dark:hover:bg-mono-900 text-mono-600 dark:text-mono-400 hover:text-mono-black dark:hover:text-mono-white transition-all duration-200"
         >
-          <ArrowLeft className="w-6 h-6" />
+          <ArrowLeft className="w-5 h-5" />
         </button>
-        <div className="flex-1">
-          <h1 className="text-3xl font-bold text-mono-black dark:text-mono-white">Suggested for You</h1>
-          <p className="text-sm text-mono-600 dark:text-mono-400 mt-1">Discover and connect with new people</p>
-        </div>
-        {!loading && suggestedUsers.length > 0 && (
+        <h1 className="text-xl font-bold text-mono-black dark:text-mono-white">Suggested for You</h1>
+        {!loading && (
           <button
             onClick={fetchSuggestedUsers}
-            className="p-3 rounded-xl hover:bg-mono-100 dark:hover:bg-mono-900 text-mono-black dark:text-mono-white transition-all duration-300 hover:rotate-180 transform"
+            className="ml-auto p-2 rounded-lg hover:bg-mono-100 dark:hover:bg-mono-900 text-mono-600 dark:text-mono-400 hover:text-mono-black dark:hover:text-mono-white transition-all duration-300 hover:rotate-180 transform"
             title="Refresh suggestions"
           >
             <RefreshCw className="w-5 h-5" />
@@ -102,46 +99,35 @@ const SuggestedUsersPage = () => {
         )}
       </div>
 
-      {/* Users Grid */}
-      <div className="bg-mono-white dark:bg-mono-900 rounded-2xl border border-mono-200 dark:border-mono-800 shadow-xl">
+      {/* Users List */}
+      <div className="bg-mono-white dark:bg-mono-900 rounded-2xl border border-mono-200 dark:border-mono-800 shadow-lg">
         {loading ? (
           <div className="flex justify-center items-center py-20">
             <div className="text-center">
-              <Loader2 className="w-12 h-12 animate-spin text-mono-black dark:text-mono-white mx-auto mb-4" />
+              <Loader2 className="w-10 h-10 animate-spin text-mono-black dark:text-mono-white mx-auto mb-3" />
               <p className="text-mono-600 dark:text-mono-400">Loading suggestions...</p>
             </div>
           </div>
         ) : suggestedUsers.length === 0 ? (
           <div className="text-center py-20">
             <p className="text-mono-600 dark:text-mono-400 text-lg mb-2">No suggestions available</p>
-            <p className="text-sm text-mono-500 dark:text-mono-500">Check back later for new recommendations</p>
+            <p className="text-sm text-mono-500">Check back later for new recommendations</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-6">
+          <div className="divide-y divide-mono-200 dark:divide-mono-800">
             {suggestedUsers.map((suggestedUser) => (
-              <div
-                key={suggestedUser._id}
-                className="flex items-center gap-4 p-4 rounded-xl border border-mono-200 dark:border-mono-800 hover:bg-mono-50 dark:hover:bg-mono-800 transition-all duration-200 group hover:shadow-lg"
-              >
-                <Link to={`/profile/${suggestedUser._id}`} className="flex items-center gap-4 flex-1 min-w-0">
-                  <div className="relative flex-shrink-0">
-                    <div className="absolute inset-0 bg-gradient-to-br from-mono-400 to-mono-600 rounded-full blur-sm opacity-0 group-hover:opacity-30 transition-opacity duration-200" />
-                    <img
-                      src={
-                        suggestedUser.profilePicture ||
-                        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRU0a0iDtUPUzs0GFM6DSuovK0uOE4-Sc40Pg&s"
-                      }
-                      alt={suggestedUser.username}
-                      className="relative w-16 h-16 rounded-full object-cover border-2 border-mono-200 dark:border-mono-700 group-hover:border-mono-black dark:group-hover:border-mono-white transition-all duration-200 shadow-md"
-                    />
-                  </div>
+              <div key={suggestedUser._id} className="flex items-center justify-between p-4">
+                <Link to={`/profile/${suggestedUser._id}`} className="flex items-center space-x-4 group">
+                  <img
+                    src={suggestedUser.profilePicture || "https://via.placeholder.com/40"}
+                    alt={suggestedUser.username}
+                    className="w-12 h-12 rounded-full object-cover border-2 border-mono-200 dark:border-mono-700 group-hover:border-mono-black dark:group-hover:border-mono-white transition-all duration-200"
+                  />
                   <div className="flex-1 min-w-0">
-                    <p className="font-bold text-mono-black dark:text-mono-white truncate group-hover:text-mono-700 dark:group-hover:text-mono-300 transition-colors duration-200">
-                      {suggestedUser.username}
+                    <p className="font-semibold text-md text-mono-black dark:text-mono-white group-hover:underline">
+                      {suggestedUser.name || suggestedUser.username}
                     </p>
-                    <p className="text-sm text-mono-600 dark:text-mono-500 truncate">
-                      {suggestedUser.bio || "No bio yet"}
-                    </p>
+                    <p className="text-sm text-mono-500 dark:text-mono-400">@{suggestedUser.username}</p>
                   </div>
                 </Link>
                 <button
@@ -155,10 +141,10 @@ const SuggestedUsersPage = () => {
                       handleFollow(suggestedUser._id);
                     }
                   }}
-                  className={`px-5 py-2.5 text-sm font-bold rounded-xl transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-sm hover:shadow-md flex-shrink-0 ${
+                  className={`px-4 py-1.5 text-sm font-bold rounded-md transition-all duration-200 transform hover:scale-105 active:scale-95 disabled:transform-none disabled:cursor-not-allowed ${
                     followingUsers.has(suggestedUser._id)
-                      ? "bg-mono-200 dark:bg-mono-700 text-mono-700 dark:text-mono-300 hover:bg-mono-300 dark:hover:bg-mono-600"
-                      : "bg-mono-black dark:bg-mono-white text-mono-white dark:text-mono-black hover:bg-mono-700 dark:hover:bg-mono-300"
+                      ? "bg-mono-200 dark:bg-mono-800 text-mono-600 dark:text-mono-300 hover:bg-mono-300 dark:hover:bg-mono-700"
+                      : "bg-mono-black dark:bg-mono-white text-mono-white dark:text-mono-black hover:bg-mono-800 dark:hover:bg-mono-200"
                   }`}
                 >
                   {followingUsers.has(suggestedUser._id) ? "Following" : "Follow"}

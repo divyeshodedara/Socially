@@ -28,12 +28,7 @@ const SignupPage = () => {
     setLoading(true);
 
     // Basic validation
-    if (
-      !formData.username ||
-      !formData.email ||
-      !formData.password ||
-      !formData.passwordConfirm
-    ) {
+    if (!formData.username || !formData.email || !formData.password || !formData.passwordConfirm) {
       setError("Please fill in all fields");
       setLoading(false);
       return;
@@ -69,23 +64,17 @@ const SignupPage = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-mono-white dark:bg-mono-black transition-colors duration-200 py-8 px-4">
-      <div className="bg-mono-white dark:bg-mono-900 border-2 border-mono-300 dark:border-mono-800 rounded-lg shadow-mono dark:shadow-mono-md p-8 max-w-md w-full">
+      <div className="bg-mono-white dark:bg-mono-900 border-2 border-mono-300 dark:border-mono-800 rounded-card shadow-mono dark:shadow-mono-md p-8 max-w-md w-full">
         {/* Logo/Title */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-mono-black dark:text-mono-white tracking-tight">
-            Socially
-          </h1>
-          <p className="text-mono-600 dark:text-mono-500 mt-2">
-            Create your account and start connecting!
-          </p>
+          <h1 className="text-4xl font-bold text-mono-black dark:text-mono-white tracking-tight">Socially</h1>
+          <p className="text-mono-600 dark:text-mono-500 mt-2">Create your account and start connecting!</p>
         </div>
 
         {/* Error Message */}
         {error && (
-          <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border-2 border-red-300 dark:border-red-700 rounded-lg">
-            <p className="text-red-600 dark:text-red-400 text-sm font-medium">
-              {error}
-            </p>
+          <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border-2 border-red-300 dark:border-red-700 rounded-input">
+            <p className="text-red-600 dark:text-red-400 text-sm font-medium">{error}</p>
           </div>
         )}
 
@@ -93,10 +82,7 @@ const SignupPage = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Username Field */}
           <div>
-            <label
-              htmlFor="username"
-              className="block text-sm font-medium text-mono-black dark:text-mono-white mb-2"
-            >
+            <label htmlFor="username" className="block text-sm font-medium text-mono-black dark:text-mono-white mb-2">
               Username
             </label>
             <input
@@ -113,10 +99,7 @@ const SignupPage = () => {
 
           {/* Email Field */}
           <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-mono-black dark:text-mono-white mb-2"
-            >
+            <label htmlFor="email" className="block text-sm font-medium text-mono-black dark:text-mono-white mb-2">
               Email
             </label>
             <input
@@ -133,10 +116,7 @@ const SignupPage = () => {
 
           {/* Password Field */}
           <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-mono-black dark:text-mono-white mb-2"
-            >
+            <label htmlFor="password" className="block text-sm font-medium text-mono-black dark:text-mono-white mb-2">
               Password
             </label>
             <input
@@ -185,10 +165,7 @@ const SignupPage = () => {
         <div className="mt-6 text-center">
           <p className="text-mono-600 dark:text-mono-500">
             Already have an account?{" "}
-            <Link
-              to="/login"
-              className="text-mono-black dark:text-mono-white hover:underline font-semibold"
-            >
+            <Link to="/login" className="text-mono-black dark:text-mono-white hover:underline font-semibold">
               Login
             </Link>
           </p>
