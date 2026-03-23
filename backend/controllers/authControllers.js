@@ -4,6 +4,7 @@ import generateOTP from "../utils/generateOtp.js";
 import User from "../models/user.model.js";
 import AppError from "../utils/appError.js";
 import sendOtpEmail from "../utils/email.js";
+import redis from "../utils/redis.js";
 
 const signToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -35,8 +36,20 @@ const sendToken = (user, statusCode, res, message) => {
   });
 };
 
+const checkDisposableEmail = async (email) => {
+  const domain = email.split("@")[1];
+  const response = await fetch(`https://api.mailcheck.ai/domain/${domain}`);
+  const data = await response.json();
+  return data.disposable; // true if disposable
+};
+
 const signup = catchAsync(async (req, res, next) => {
   const { username, email, password, passwordConfirm } = req.body;
+
+  const isDisposable = await checkDisposableEmail(email);
+  if (isDisposable) {
+    return next(new AppError("Please use a real email address", 400));
+  }
 
   const existingUser = await User.findOne({ email });
 
@@ -181,6 +194,7 @@ const logout = catchAsync(async (req, res, next) => {
     sameSite: process.env.NODE_ENV === "development" ? "lax" : "none",
     secure: process.env.NODE_ENV === "development" ? false : true,
   });
+  await redis.del(`user:${req.user.id}`);
   res.status(200).json({ status: "success", message: "Logged out successfully!" });
 });
 

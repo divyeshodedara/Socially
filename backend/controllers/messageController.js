@@ -116,7 +116,7 @@ export const getMessages = catchAsync(async (req, res, next) => {
 
 // Get all conversations for current user
 export const getConversations = catchAsync(async (req, res, next) => {
-  const userId = req.user.id;
+  const userId = req.user?._id;
 
   const conversations = await Conversation.find({
     participants: userId,
@@ -134,6 +134,9 @@ export const getConversations = catchAsync(async (req, res, next) => {
       ],
     })
     .sort({ updatedAt: -1 });
+  console.log(userId);
+
+  console.log(conversations);
 
   res.status(200).json({
     status: "success",

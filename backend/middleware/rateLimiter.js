@@ -1,11 +1,7 @@
 import { ipKeyGenerator, rateLimit } from "express-rate-limit";
 
 // Reusable rate limiter factory function
-const createRateLimiter = (
-  windowMs,
-  max,
-  message = "Too many attempts. Please try again later.",
-) => {
+const createRateLimiter = (windowMs, max, message = "Too many attempts. Please try again later.") => {
   return rateLimit({
     windowMs,
     max,
@@ -13,6 +9,9 @@ const createRateLimiter = (
     legacyHeaders: false,
     keyGenerator: (req) => {
       const ip = req.ip || req.remoteAddress;
+      console.log(ip);
+      console.log(req.user?.id);
+
       if (req.user?.id) {
         return req.user.id;
       }
@@ -28,11 +27,7 @@ const createRateLimiter = (
 };
 
 // General API rate limiter - 500 requests per 15 minutes
-export const apiLimiter = createRateLimiter(
-  15 * 60 * 1000,
-  300,
-  "Too many requests. Please try again later.",
-);
+export const apiLimiter = createRateLimiter(15 * 60 * 1000, 500, "Too many requests. Please try again later.");
 
 // Strict limiter for auth routes - 5 requests per 15 minutes
 export const authLimiter = createRateLimiter(15 * 60 * 1000, 5);
@@ -51,3 +46,7 @@ export const messageLimiter = createRateLimiter(15 * 60 * 1000, 50);
 
 // Email verification limiter - 3 requests per hour
 export const emailVerificationLimiter = createRateLimiter(60 * 60 * 1000, 3);
+
+export const interactionLimiter = createRateLimiter(60 * 60 * 1000, 100, "Too many interactions. Please slow down.");
+
+export const commentLimiter = createRateLimiter(60 * 60 * 1000, 30, "Too many comments. Please slow down.");

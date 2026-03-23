@@ -5,7 +5,6 @@ import { cloudinary, uploadToCloudinary } from "../utils/cloudinary.js";
 import Post from "../models/post.model.js";
 import User from "../models/user.model.js";
 import Comment from "../models/comment.model.js";
-import { login } from "./authControllers.js";
 import { createNotification } from "./notificationController.js";
 import {
   sendNewPostToUser,
@@ -16,8 +15,11 @@ import {
 
 const createPost = catchAsync(async (req, res, next) => {
   const { caption } = req.body;
-  const userId = req.user.id;
+  const userId = req.user?._id;
   const image = req.file;
+  // console.log("from post controller", req.user?.id);
+
+  // console.log(userId, caption, image);
 
   if (!image) throw new AppError("Image is required for the post", 400);
 
@@ -82,6 +84,7 @@ const getAllPosts = catchAsync(async (req, res, next) => {
   const limit = parseInt(req.query.limit) || 10;
   const skip = (page - 1) * limit;
 
+  const t1 = Date.now();
   const posts = await Post.find()
     .populate({
       path: "user",
@@ -92,7 +95,12 @@ const getAllPosts = catchAsync(async (req, res, next) => {
     .limit(limit)
     .lean();
 
+  console.log(`posts query : ${Date.now() - t1}ms`);
+
+  const t2 = Date.now();
   const total = await Post.countDocuments();
+
+  console.log(`countDocuments() took: ${Date.now() - t2}ms`);
   const hasMore = skip + posts.length < total;
 
   res.status(200).json({
@@ -108,40 +116,6 @@ const getAllPosts = catchAsync(async (req, res, next) => {
   });
 });
 
-// const getAllPosts = catchAsync(async (req, res, next) => {
-//   const page = parseInt(req.query.page) || 1;
-//   const limit = parseInt(req.query.limit) || 10;
-//   const skip = (page - 1) * limit;
-
-//   const [posts, total] = await Promise.all([
-//     Post.find()
-//       .populate({
-//         path: "user",
-//         select: "username profilePicture",
-//       })
-//       .sort({ createdAt: -1 })
-//       .skip(skip)
-//       .limit(limit)
-//       .lean(),
-
-//     Post.countDocuments(),
-//   ]);
-
-//   const hasMore = skip + posts.length < total;
-
-//   res.status(200).json({
-//     status: "Success",
-//     results: posts.length,
-//     data: {
-//       posts,
-//       hasMore,
-//       currentPage: page,
-//       totalPages: Math.ceil(total / limit),
-//       total,
-//     },
-//   });
-// });
-
 const getUserPosts = catchAsync(async (req, res, next) => {
   const userId = req.params.id;
 
@@ -155,7 +129,7 @@ const getUserPosts = catchAsync(async (req, res, next) => {
 });
 
 const saveOrUnsavePost = catchAsync(async (req, res, next) => {
-  const userId = req.user.id;
+  const userId = req.user?._id;
   const postId = req.params.postId;
 
   const user = await User.findById(userId);
@@ -197,7 +171,7 @@ const saveOrUnsavePost = catchAsync(async (req, res, next) => {
 });
 
 const deletePost = catchAsync(async (req, res, next) => {
-  const userId = req.user.id;
+  const userId = req.user?._id;
   const postId = req.params.postId;
 
   const post = await Post.findById(postId);
@@ -224,7 +198,7 @@ const deletePost = catchAsync(async (req, res, next) => {
 });
 
 const likeOrDislikePost = catchAsync(async (req, res, next) => {
-  const userId = req.user.id;
+  const userId = req.user?._id;
   const postId = req.params.postId;
 
   const post = await Post.findById(postId).select("likes user");
@@ -242,7 +216,7 @@ const likeOrDislikePost = catchAsync(async (req, res, next) => {
   await post.save();
 
   if (!alreadyLiked) {
-    createNotification({
+    await createNotification({
       recipient: post.user,
       sender: userId,
       type: "like",
@@ -260,7 +234,7 @@ const likeOrDislikePost = catchAsync(async (req, res, next) => {
 });
 
 const addComment = catchAsync(async (req, res, next) => {
-  const userId = req.user.id;
+  const userId = req.user?._id;
   const postId = req.params.postId;
   const { text } = req.body;
   if (!text) throw new AppError("Comment text is required", 400);

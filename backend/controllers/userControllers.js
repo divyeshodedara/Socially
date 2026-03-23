@@ -4,15 +4,21 @@ import catchAsync from "../utils/catchAsync.js";
 import getDataUri from "../utils/dataUri.js";
 import { uploadToCloudinary } from "../utils/cloudinary.js";
 import { createNotification } from "./notificationController.js";
+import redis from "../utils/redis.js";
 
 const getProfile = catchAsync(async (req, res, next) => {
-  const { id } = req.params;
+  const userId = req.params.id;
 
-  const user = await User.findById(id)
+  const user = await User.findById(userId)
     .select("-password -otp -otpExpiry -resetPasswordOtp -resetPasswordOtpExpiry")
-    .populate({ path: "posts", options: { sort: { createdAt: -1 } } })
-    .populate({ path: "savedPosts", options: { sort: { createdAt: -1 } } });
-
+    .populate({
+      path: "posts",
+      options: { sort: { createdAt: -1 }, limit: 12 },
+    })
+    .populate({
+      path: "savedPosts",
+      options: { sort: { createdAt: -1 }, limit: 12 },
+    });
   if (!user) {
     return next(new AppError("User not found", 404));
   }
@@ -45,6 +51,8 @@ const editProfile = catchAsync(async (req, res, next) => {
 
   await user.save({ validateBeforeSave: false });
 
+  await redis.del(`user:${userId}`); // Invalidate cache after profile update
+
   res.status(200).json({
     message: "profile updated",
     status: "success",
@@ -55,7 +63,10 @@ const editProfile = catchAsync(async (req, res, next) => {
 const suggestedUser = catchAsync(async (req, res, next) => {
   const userId = req.user.id;
 
-  const users = await User.find({ _id: { $ne: userId } }).select("_id username bio profilePicture");
+  const users = await User.find({ _id: { $ne: userId } })
+    .select("_id username bio profilePicture")
+    .limit(20)
+    .lean();
 
   res.status(200).json({
     status: "success",
@@ -64,26 +75,26 @@ const suggestedUser = catchAsync(async (req, res, next) => {
 });
 
 const followUser = catchAsync(async (req, res, next) => {
-  const { id } = req.params; // ID of the user to follow
-  const currentUserId = req.user.id; // ID of the current logged-in user
+  const idToFollow = req.params.id; // ID of the user to follow
+  const currentUserId = req.user?._id; // ID of the current logged-in user
 
-  if (id === currentUserId) {
+  if (idToFollow === currentUserId) {
     return next(new AppError("You cannot follow yourself", 400));
   }
 
-  const userToFollow = await User.findById(id);
+  const userToFollow = await User.findById(idToFollow);
   const currentUser = await User.findById(currentUserId);
 
   if (!userToFollow) {
     return next(new AppError("User to follow not found", 404));
   }
 
-  if (currentUser.following.includes(id)) {
+  if (currentUser.following.includes(idToFollow)) {
     return next(new AppError("You are already following this user", 400));
   }
 
   // Add to following list of current user
-  currentUser.following.push(id);
+  currentUser.following.push(idToFollow);
   // Add to followers list of the user to follow
   userToFollow.followers.push(currentUserId);
 
@@ -92,7 +103,7 @@ const followUser = catchAsync(async (req, res, next) => {
 
   // Send follow notification
   await createNotification({
-    recipient: id,
+    recipient: idToFollow,
     sender: currentUserId,
     type: "follow",
   });
@@ -104,26 +115,26 @@ const followUser = catchAsync(async (req, res, next) => {
 });
 
 const unfollowUser = catchAsync(async (req, res, next) => {
-  const { id } = req.params; // ID of the user to unfollow
-  const currentUserId = req.user.id; // ID of the current logged-in user
+  const idToUnfollow = req.params.id; // ID of the user to unfollow
+  const currentUserId = req.user?._id; // ID of the current logged-in user
 
-  if (id === currentUserId) {
+  if (idToUnfollow === currentUserId) {
     return next(new AppError("You cannot unfollow yourself", 400));
   }
 
-  const userToUnfollow = await User.findById(id);
+  const userToUnfollow = await User.findById(idToUnfollow);
   const currentUser = await User.findById(currentUserId);
 
   if (!userToUnfollow) {
     return next(new AppError("User to unfollow not found", 404));
   }
 
-  if (!currentUser.following.includes(id)) {
+  if (!currentUser.following.includes(idToUnfollow)) {
     return next(new AppError("You are not following this user", 400));
   }
 
   // Remove from following list of current user
-  currentUser.following = currentUser.following.filter((followId) => followId.toString() !== id.toString());
+  currentUser.following = currentUser.following.filter((followId) => followId.toString() !== idToUnfollow.toString());
   // Remove from followers list of the user to unfollow
   userToUnfollow.followers = userToUnfollow.followers.filter(
     (followerId) => followerId.toString() !== currentUserId.toString(),
@@ -152,7 +163,7 @@ const getMe = catchAsync(async (req, res, next) => {
 
 const searchUsers = catchAsync(async (req, res, next) => {
   const { query } = req.query;
-  const currentUserId = req.user.id;
+  const currentUserId = req.user?._id;
 
   if (!query || query.trim().length === 0) {
     return res.status(200).json({

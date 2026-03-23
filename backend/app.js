@@ -18,8 +18,7 @@ import { apiLimiter } from "./middleware/rateLimiter.js";
 const app = express();
 
 // Trust proxy to get correct client IP
-// app.set("trust proxy", 1);
-console.log(process.env.FRONTEND_URL);
+app.set("trust proxy", 1);
 
 app.use(
   cors({
@@ -40,7 +39,7 @@ if (process.env.NODE_ENV === "development") {
 }
 
 // Apply rate limiting to all API routes
-app.use("/api/v1", apiLimiter);
+// app.use("/api/v1", apiLimiter);
 
 // routes
 app.use("/api/v1/users", userRouter);
