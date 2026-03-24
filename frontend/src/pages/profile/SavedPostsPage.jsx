@@ -1,71 +1,57 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { Bookmark } from "lucide-react";
-import Post from "../components/posts/Post";
-import { useSocket } from "../context/SocketContext";
-import api from "../api/api";
-import toast from "react-hot-toast";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import Post from "../../components/posts/Post";
+import { useSocket } from "../../context/SocketContext";
+import api from "../../api/api";
 
 const SavedPostsPage = () => {
   const { socket } = useSocket();
-  const [savedPosts, setSavedPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    fetchSavedPosts();
-  }, []);
+  const {
+    data: savedPosts = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["user", "me"],
+    queryFn: async () => {
+      const response = await api.get("/users/me");
+      if (response.data.status === "success") {
+        return response.data.data.user;
+      }
+      throw new Error("Failed to fetch user");
+    },
+    staleTime: 60000,
+    select: (user) => user.savedPosts || [],
+  });
 
-  // Listen for real-time saved post updates
   useEffect(() => {
     if (!socket) return;
 
     const handlePostSavedUpdate = ({ postId, isSaved, post }) => {
-      if (isSaved && post) {
-        // Add the post to saved posts if not already there
-        setSavedPosts((prev) => {
-          const exists = prev.some((p) => p._id === postId);
-          if (!exists) {
-            return [post, ...prev];
-          }
-          return prev;
-        });
-      } else if (!isSaved) {
-        // Remove the post from saved posts
-        setSavedPosts((prev) => prev.filter((p) => p._id !== postId));
-      }
+      queryClient.setQueryData(["user", "me"], (old) => {
+        if (!old) return old;
+        const currentSaved = old.savedPosts || [];
+        const updatedSaved = isSaved
+          ? currentSaved.some((p) => p._id === postId)
+            ? currentSaved
+            : [post, ...currentSaved]
+          : currentSaved.filter((p) => p._id !== postId);
+
+        return { ...old, savedPosts: updatedSaved };
+      });
     };
 
     socket.on("postSavedUpdated", handlePostSavedUpdate);
-
-    return () => {
-      socket.off("postSavedUpdated", handlePostSavedUpdate);
-    };
-  }, [socket]);
-
-  const fetchSavedPosts = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await api.get("/users/me");
-      if (response.data.status === "success") {
-        const user = response.data.data.user;
-        setSavedPosts(user.savedPosts || []);
-      }
-    } catch (err) {
-      const message = err.response?.data?.message || "Failed to fetch saved posts";
-      setError(message);
-      toast.error(message);
-    } finally {
-      setLoading(false);
-    }
-  };
+    return () => socket.off("postSavedUpdated", handlePostSavedUpdate);
+  }, [socket, queryClient]);
 
   const handlePostUpdate = () => {
-    // Refresh saved posts when a post is updated (e.g., unsaved)
-    fetchSavedPosts();
+    queryClient.invalidateQueries(["user", "me"]);
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-mono-black dark:border-mono-white"></div>
@@ -76,8 +62,11 @@ const SavedPostsPage = () => {
   if (error) {
     return (
       <div className="bg-mono-100 dark:bg-mono-900 border border-mono-300 dark:border-mono-800 rounded-card p-6 text-center">
-        <p className="text-mono-black dark:text-mono-white mb-4">{error}</p>
-        <button onClick={fetchSavedPosts} className="btn-primary">
+        <p className="text-mono-black dark:text-mono-white mb-4">{error.message || "Failed to fetch saved posts"}</p>
+        <button
+          onClick={() => queryClient.invalidateQueries(["user", "me"])}
+          className="bg-mono-black dark:bg-mono-white text-mono-white dark:text-mono-black px-4 py-2 rounded-btn font-medium hover:opacity-80 transition-opacity"
+        >
           Try Again
         </button>
       </div>
@@ -103,7 +92,7 @@ const SavedPostsPage = () => {
           <p className="text-sm text-mono-600 dark:text-mono-500">Posts you save will appear here</p>
         </div>
       ) : (
-        <div className="space-y-0">
+        <div className="space-y-6">
           {savedPosts.map((post) => (
             <Post key={post._id} post={post} onUpdate={handlePostUpdate} />
           ))}

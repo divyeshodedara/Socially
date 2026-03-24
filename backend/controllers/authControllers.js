@@ -24,10 +24,7 @@ const sendToken = (user, statusCode, res, message) => {
 
   res.cookie("token", token, cookieOptions);
 
-  // Remove password from output
   user.password = undefined;
-  user.otp = undefined;
-  user.otpExpiry = undefined;
 
   res.status(statusCode).json({
     status: "success",
@@ -58,15 +55,14 @@ const signup = catchAsync(async (req, res, next) => {
   }
 
   const otp = generateOTP();
-  const otpExpiry = Date.now() + 10 * 60 * 1000;
+
+  await redis.set(`otp:${email}`, otp, "EX", 10 * 60);
 
   const newUser = await User.create({
     username,
     email,
     password,
     passwordConfirm,
-    otp,
-    otpExpiry,
   });
 
   try {
@@ -94,20 +90,22 @@ const verifyOtp = catchAsync(async (req, res, next) => {
     return next(new AppError("Email and OTP are required", 400));
   }
 
-  const user = await User.findOne({
-    email,
-    otp,
-    otpExpiry: { $gt: Date.now() },
-  });
+  const storedOtp = await redis.get(`otp:${email}`);
 
-  if (!user) {
-    return next(new AppError("Invalid or expired OTP", 400));
+  if (!storedOtp) {
+    return next(new AppError("OTP has expired or is invalid", 400));
   }
 
+  if (storedOtp !== otp) {
+    return next(new AppError("Invalid OTP", 400));
+  }
+
+  const user = await User.findOne({ email });
   user.isVerified = true;
-  user.otp = undefined;
-  user.otpExpiry = undefined;
+
   await user.save({ validateBeforeSave: false });
+
+  await redis.del(`otp:${email}`);
   sendToken(user, 200, res, "Email verified successfully!");
 });
 
@@ -129,11 +127,7 @@ const resendOtp = catchAsync(async (req, res, next) => {
   }
 
   const otp = generateOTP();
-  const otpExpiry = Date.now() + 10 * 60 * 1000;
-  user.otp = otp;
-  user.otpExpiry = otpExpiry;
-
-  await user.save({ validateBeforeSave: false });
+  await redis.set(`otp:${email}`, otp, "EX", 10 * 60);
 
   try {
     const otpSent = await sendOtpEmail({
@@ -141,16 +135,12 @@ const resendOtp = catchAsync(async (req, res, next) => {
       otp,
       purpose: "verify your email",
     });
-    console.log("OTP sent:", otpSent);
     res.status(200).json({
       status: "success",
       message: "OTP resent successfully",
     });
   } catch (err) {
     console.error("Email error:", err.message);
-    user.otp = undefined;
-    user.otpExpiry = undefined;
-    await user.save({ validateBeforeSave: false });
     return next(new AppError("There was an error sending the email. Please try again later.", 500));
   }
 });
@@ -161,26 +151,20 @@ const login = catchAsync(async (req, res, next) => {
   if (!email || !password) {
     return next(new AppError("Please provide email and password", 400));
   }
-  const user = await User.findOne({ email }).select("+password +isVerified +otp +otpExpiry");
+  const user = await User.findOne({ email }).select("+password +isVerified");
   if (!user || !(await user.correctPassword(password, user.password))) {
     return next(new AppError("Incorrect email or password", 401));
   }
   if (!user.isVerified) {
     const otp = generateOTP();
-    const otpExpiry = Date.now() + 10 * 60 * 1000;
-    user.otp = otp;
-    user.otpExpiry = otpExpiry;
-    await user.save({ validateBeforeSave: false });
+
+    await redis.set(`otp:${email}`, otp, "EX", 10 * 60);
 
     try {
-      const otp = await sendOtpEmail(user);
-      console.log("OTP sent:", otp);
+      await sendOtpEmail({ user, otp, purpose: "verify your email" });
       return next(new AppError("Email not verified. A new OTP has been sent to your email.", 401));
     } catch (err) {
       console.error("Email error:", err.message);
-      user.otp = undefined;
-      user.otpExpiry = undefined;
-      await user.save({ validateBeforeSave: false });
       return next(new AppError("There was an error sending the email. Please try again later.", 500));
     }
   }
@@ -207,34 +191,25 @@ const forgetPassword = catchAsync(async (req, res, next) => {
   const user = await User.findOne({ email });
 
   if (!user) {
-    return next(new AppError("User not found", 404));
+    return res.status(200).json({ status: "success", message: "OTP sent to email successfully" });
   }
 
   const otp = generateOTP();
-  const otpExpiry = Date.now() + 10 * 60 * 1000;
+  await redis.set(`otp:${email}`, otp, "EX", 10 * 60);
 
-  user.resetPasswordOtp = otp;
-  user.resetPasswordOtpExpiry = otpExpiry;
-  await user.save({ validateBeforeSave: false });
   try {
-    // console.log("Preparing to send OTP email");
     const options = {
       user,
       otp,
       purpose: "reset your password",
     };
-    // console.log("Sending OTP email with options:", options);
     const emailResponse = await sendOtpEmail(options);
-    console.log("OTP sent:", emailResponse);
     res.status(200).json({
       status: "success",
       message: "OTP sent to email successfully",
     });
   } catch (err) {
     console.error("Email error:", err.message);
-    user.resetPasswordOtp = undefined;
-    user.resetPasswordOtpExpiry = undefined;
-    await user.save({ validateBeforeSave: false });
     return next(new AppError("There was an error sending the email. Please try again later.", 500));
   }
 });
@@ -245,22 +220,19 @@ const resetPassword = catchAsync(async (req, res, next) => {
     return next(new AppError("All fields are required", 400));
   }
 
-  const user = await User.findOne({
-    email,
-    resetPasswordOtp: otp,
-    resetPasswordOtpExpiry: { $gt: Date.now() },
-  });
+  const storedOtp = await redis.get(`otp:${email}`);
 
-  if (!user) {
-    return next(new AppError("user does not exists or invalid OTP", 400));
+  if (!storedOtp || storedOtp !== otp) {
+    return next(new AppError("Invalid or expired OTP", 400));
   }
+
+  const user = await User.findOne({ email });
 
   user.password = password;
   user.passwordConfirm = passwordConfirm;
-  user.resetPasswordOtp = undefined;
-  user.resetPasswordOtpExpiry = undefined;
-
   await user.save();
+
+  await redis.del(`otp:${email}`);
 
   sendToken(user, 200, res, "Password reset succeffully! Please log in with your new password.");
 });

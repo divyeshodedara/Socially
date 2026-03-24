@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Settings, Grid, Bookmark, LogOut, MessageCircle, Heart } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
-import api from "../api/api";
+import { useAuth } from "../../context/AuthContext";
+import api from "../../api/api";
 import toast from "react-hot-toast";
 
 const ProfilePage = () => {

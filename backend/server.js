@@ -1,7 +1,4 @@
 import "./utils/env.js";
-// import dotenv from "dotenv";
-// dotenv.config();
-
 import mongoose from "mongoose";
 import app from "./app.js";
 import { initializeSocket } from "./utils/socket.js";

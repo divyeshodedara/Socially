@@ -12,7 +12,7 @@ const uploadToCloudinary = async (fileUrl) => {
     const response = await cloudinary.uploader.upload(fileUrl, {
       resource_type: "auto",
       folder: "social_media_app",
-      upload_preset: undefined, // Use default signed upload
+      upload_preset: undefined,
     });
     return response;
   } catch (error) {

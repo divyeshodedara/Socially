@@ -9,8 +9,6 @@ const createRateLimiter = (windowMs, max, message = "Too many attempts. Please t
     legacyHeaders: false,
     keyGenerator: (req) => {
       const ip = req.ip || req.remoteAddress;
-      console.log(ip);
-      console.log(req.user?.id);
 
       if (req.user?.id) {
         return req.user.id;

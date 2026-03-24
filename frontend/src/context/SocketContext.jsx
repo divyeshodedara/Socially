@@ -21,26 +21,23 @@ export const SocketProvider = ({ children }) => {
   useEffect(() => {
     if (isAuthenticated && user) {
       // Connect to socket server (bypasses Vite proxy, connects directly to backend)
-      const socketInstance = io(
-        import.meta.env.VITE_SOCKET_URL || "http://localhost:3000",
-        {
-          withCredentials: true,
-        }
-      );
+      const socketInstance = io(import.meta.env.VITE_SOCKET_URL || "http://localhost:3000", {
+        withCredentials: true,
+      });
 
       socketInstance.on("connect", () => {
-        console.log("✅ Socket connected:", socketInstance.id);
+        // console.log("Socket connected:", socketInstance.id);
         // Register user with their ID
         socketInstance.emit("user-connected", user._id);
       });
 
       socketInstance.on("disconnect", () => {
-        console.log("❌ Socket disconnected");
+        // console.log("Socket disconnected");
       });
 
       // Listen for new notifications
       socketInstance.on("new-notification", (notification) => {
-        console.log("📧 New notification received:", notification);
+        // console.log("new notification received:", notification);
         setNotifications((prev) => [notification, ...prev]);
         setUnreadCount((prev) => prev + 1);
 
@@ -79,9 +76,7 @@ export const SocketProvider = ({ children }) => {
   };
 
   const markAsRead = (notificationId) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n._id === notificationId ? { ...n, read: true } : n))
-    );
+    setNotifications((prev) => prev.map((n) => (n._id === notificationId ? { ...n, read: true } : n)));
     setUnreadCount((prev) => Math.max(0, prev - 1));
   };
 
@@ -107,7 +102,5 @@ export const SocketProvider = ({ children }) => {
     setUnreadCount,
   };
 
-  return (
-    <SocketContext.Provider value={value}>{children}</SocketContext.Provider>
-  );
+  return <SocketContext.Provider value={value}>{children}</SocketContext.Provider>;
 };

@@ -9,9 +9,11 @@ import { sendMessageToUser } from "../utils/socket.js";
 // Send a new message
 export const sendMessage = catchAsync(async (req, res, next) => {
   const { receiverId, message } = req.body;
-  const senderId = req.user.id;
+  const senderId = req.user._id;
   const image = req.file;
-
+  console.log(message);
+  console.log(senderId);
+  console.log(receiverId);
   if (!receiverId) {
     return next(new AppError("Receiver ID is required", 400));
   }
@@ -134,10 +136,6 @@ export const getConversations = catchAsync(async (req, res, next) => {
       ],
     })
     .sort({ updatedAt: -1 });
-  console.log(userId);
-
-  console.log(conversations);
-
   res.status(200).json({
     status: "success",
     data: {

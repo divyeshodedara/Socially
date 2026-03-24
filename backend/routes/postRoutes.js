@@ -11,12 +11,10 @@ router.use(authMiddleware);
 router.get("/all-posts", postController.getAllPosts);
 router.get("/user-posts/:id", postController.getUserPosts);
 router.get("/:postId/comments", postController.getPostComments);
-
 router.post("/create-post", postCreationLimiter, upload.single("image"), postController.createPost);
 router.post("/save/:postId", postController.saveOrUnsavePost);
 router.post("/like-dislike/:postId", interactionLimiter, postController.likeOrDislikePost);
 router.post("/comment/:postId", commentLimiter, postController.addComment);
-
 router.delete("/delete/:postId", postController.deletePost);
 
 export default router;

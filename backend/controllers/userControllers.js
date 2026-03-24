@@ -18,7 +18,9 @@ const getProfile = catchAsync(async (req, res, next) => {
     .populate({
       path: "savedPosts",
       options: { sort: { createdAt: -1 }, limit: 12 },
-    });
+    })
+    .lean();
+
   if (!user) {
     return next(new AppError("User not found", 404));
   }
@@ -30,8 +32,7 @@ const getProfile = catchAsync(async (req, res, next) => {
 });
 
 const editProfile = catchAsync(async (req, res, next) => {
-  const userId = req.user.id;
-
+  const userId = req.user._id;
   const { bio } = req.body;
   const profilePicture = req.file;
 
@@ -61,7 +62,8 @@ const editProfile = catchAsync(async (req, res, next) => {
 });
 
 const suggestedUser = catchAsync(async (req, res, next) => {
-  const userId = req.user.id;
+  const userId = req.user._id;
+  console.log(userId);
 
   const users = await User.find({ _id: { $ne: userId } })
     .select("_id username bio profilePicture")

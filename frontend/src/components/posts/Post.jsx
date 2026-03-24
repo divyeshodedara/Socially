@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import Card from "../common/Card";
+import Card from "../ui/Card";
 import { Heart, MessageCircle, Bookmark, MoreHorizontal, Trash2, ArrowRight } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useSocket } from "../../context/SocketContext";
@@ -35,11 +35,14 @@ const Post = ({ post, onUpdate }) => {
     if (!socket) return;
 
     const handlePostLikeUpdate = ({ postId, likesCount, userId }) => {
-      // Only update if this is the same post
       if (postId === post._id) {
         setLikesCount(likesCount);
-        // Update isLiked state based on whether current user liked it
-        setIsLiked(userId === user?._id ? !isLiked : isLiked);
+
+        // Only update isLiked if the current user triggered this event
+        // Use functional updater to always read current state, not stale closure
+        if (userId === user?._id) {
+          setIsLiked((prev) => !prev);
+        }
       }
     };
 
@@ -68,7 +71,7 @@ const Post = ({ post, onUpdate }) => {
       socket.off("postLikeUpdated", handlePostLikeUpdate);
       socket.off("newComment", handleNewComment);
     };
-  }, [socket, post._id, user?._id, isLiked, showComments]);
+  }, [socket, post._id, user?._id, showComments]);
 
   const handleLike = async () => {
     try {

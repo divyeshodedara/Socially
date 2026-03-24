@@ -2,10 +2,10 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { MessageCircle, Search } from "lucide-react";
-import api from "../api/api";
+import api from "../../api/api";
 import toast from "react-hot-toast";
-import { useAuth } from "../context/AuthContext";
-import { useSocket } from "../context/SocketContext";
+import { useAuth } from "../../context/AuthContext";
+import { useSocket } from "../../context/SocketContext";
 import { formatDistanceToNow } from "date-fns";
 
 const MessagesPage = () => {

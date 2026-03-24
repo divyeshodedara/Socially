@@ -3,20 +3,21 @@ import { useAuth } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import { SocketProvider } from "./context/SocketContext";
 
-import HomePage from "./pages/HomePage";
-import LoginPage from "./pages/LoginPage";
-import SignupPage from "./pages/SignupPage";
-import VerifyEmailPage from "./pages/VerifyEmailPage";
-import ProfilePage from "./pages/ProfilePage";
-import EditProfilePage from "./pages/EditProfilePage";
-import SavedPostsPage from "./pages/SavedPostsPage";
-import ForgotPasswordPage from "./pages/ForgotPasswordPage";
-import ResetPasswordPage from "./pages/ResetPasswordPage";
-import MessagesPage from "./pages/MessagesPage";
-import ChatPage from "./pages/ChatPage";
-import SuggestedUsersPage from "./pages/SuggestedUsersPage";
+import HomePage from "./pages/feed/HomePage";
+import LoginPage from "./pages/auth/LoginPage";
+import SignupPage from "./pages/auth/SignupPage";
+import VerifyEmailPage from "./pages/auth/VerifyEmailPage";
+import NotFoundPage from "./pages/NotFoundPage";
+import EditProfilePage from "./pages/profile/EditProfilePage";
+import SavedPostsPage from "./pages/profile/SavedPostsPage";
+import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
+import ProfilePage from "./pages/profile/ProfilePage";
+import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
+import MessagesPage from "./pages/messages/MessagesPage";
+import ChatPage from "./pages/messages/ChatPage";
+import SuggestedUsersPage from "./pages/users/SuggestedUsersPage";
 
-import Layout from "./components/common/Layout";
+import Layout from "./components/layout/Layout";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 
 function App() {
@@ -57,7 +58,7 @@ function App() {
             </Route>
 
             {/* Catch all - redirect to home */}
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
         )}
       </SocketProvider>

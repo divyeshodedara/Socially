@@ -2,7 +2,7 @@ import axios from "axios";
 
 // Create axios instance with default config
 const api = axios.create({
-  baseURL: "http://localhost:3000/api/v1",
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:3000/api/v1",
   withCredentials: true, // Send cookies with requests
   headers: {
     "Content-Type": "application/json",
@@ -19,13 +19,7 @@ api.interceptors.response.use(
     // Handle 401 Unauthorized errors
     if (error.response && error.response.status === 401) {
       // Only redirect if not already on a public page
-      const publicPaths = [
-        "/login",
-        "/signup",
-        "/verify-email",
-        "/forgot-password",
-        "/reset-password",
-      ];
+      const publicPaths = ["/login", "/signup", "/verify-email", "/forgot-password", "/reset-password"];
       const currentPath = window.location.pathname;
 
       if (!publicPaths.includes(currentPath)) {

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import api from "../api/api";
+import { useAuth } from "../../context/AuthContext";
+import api from "../../api/api";
 import toast from "react-hot-toast";
 
 const VerifyEmailPage = () => {

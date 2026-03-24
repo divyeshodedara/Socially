@@ -13,7 +13,6 @@ router.get("/me", userController.getMe);
 router.get("/search", userController.searchUsers);
 router.get("/profile/:id", userController.getProfile);
 router.get("/suggested-users", userController.suggestedUser);
-
 router.post("/follow/:id", interactionLimiter, userController.followUser);
 router.post("/unfollow/:id", interactionLimiter, userController.unfollowUser);
 router.post("/edit-profile", upload.single("profilePicture"), userController.editProfile);

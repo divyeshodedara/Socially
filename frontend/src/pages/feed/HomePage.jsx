@@ -1,11 +1,11 @@
 import { useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
-import Post from "../components/posts/Post";
-import api from "../api/api";
+import Post from "../../components/posts/Post";
+import api from "../../api/api";
 import toast from "react-hot-toast";
-import { useSocket } from "../context/SocketContext";
-import { useAuth } from "../context/AuthContext";
+import { useSocket } from "../../context/SocketContext";
+import { useAuth } from "../../context/AuthContext";
 
 const HomePage = () => {
   const { socket } = useSocket();
@@ -82,11 +82,26 @@ const HomePage = () => {
         }
       };
 
+      const handlePostDeleted = ({ postId }) => {
+        queryClient.setQueryData(["posts", "feed"], (oldData) => {
+          if (!oldData) return oldData;
+          return {
+            ...oldData,
+            pages: oldData.pages.map((page) => ({
+              ...page,
+              posts: page.posts.filter((p) => p._id !== postId),
+            })),
+          };
+        });
+      };
+
       socket.on("newPost", handleNewPost);
+      socket.on("postDeleted", handlePostDeleted);
 
       // Cleanup listener on unmount
       return () => {
         socket.off("newPost", handleNewPost);
+        socket.off("postDeleted", handlePostDeleted);
       };
     }
   }, [socket, user, queryClient]);

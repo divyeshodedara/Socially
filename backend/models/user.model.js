@@ -38,8 +38,7 @@ const userSchema = new mongoose.Schema(
     },
     profilePicture: {
       type: String,
-      default:
-        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRU0a0iDtUPUzs0GFM6DSuovK0uOE4-Sc40Pg&s", // Default profile picture
+      default: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRU0a0iDtUPUzs0GFM6DSuovK0uOE4-Sc40Pg&s", // Default profile picture
     },
     bio: {
       type: String,
@@ -74,22 +73,6 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    otp: {
-      type: String,
-      default: null,
-    },
-    otpExpiry: {
-      type: Date,
-      default: null,
-    },
-    resetPasswordOtp: {
-      type: String,
-      default: null,
-    },
-    resetPasswordOtpExpiry: {
-      type: Date,
-      default: null,
-    },
     createdAt: {
       type: Date,
       default: Date.now,
@@ -111,8 +94,6 @@ userSchema.methods.correctPassword = async function (userPassword, dbPassword) {
   return await bcrypt.compare(userPassword, dbPassword);
 };
 
-// userSchema.index({ username: 1 });
-// userSchema.index({ email: 1 });
 userSchema.index({ followers: 1 });
 userSchema.index({ following: 1 });
 

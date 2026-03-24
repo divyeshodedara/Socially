@@ -11,15 +11,14 @@ import {
   broadcastPostLikeUpdate,
   broadcastNewComment,
   sendSavedPostUpdate,
+  sendPostDeletedToUser,
 } from "../utils/socket.js";
+import redis from "../utils/redis.js";
 
 const createPost = catchAsync(async (req, res, next) => {
   const { caption } = req.body;
   const userId = req.user?._id;
   const image = req.file;
-  // console.log("from post controller", req.user?.id);
-
-  // console.log(userId, caption, image);
 
   if (!image) throw new AppError("Image is required for the post", 400);
 
@@ -44,8 +43,6 @@ const createPost = catchAsync(async (req, res, next) => {
     },
     user: userId,
   });
-
-  //add post to user posts
 
   const user = await User.findById(userId);
 
@@ -75,7 +72,6 @@ const createPost = catchAsync(async (req, res, next) => {
   res.status(201).json({
     status: "Success",
     message: "Post Created",
-    // data: { post },
   });
 });
 
@@ -84,26 +80,26 @@ const getAllPosts = catchAsync(async (req, res, next) => {
   const limit = parseInt(req.query.limit) || 10;
   const skip = (page - 1) * limit;
 
-  const t1 = Date.now();
-  const posts = await Post.find()
-    .populate({
-      path: "user",
-      select: "username profilePicture",
-    })
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(limit)
-    .lean();
+  const cacheKey = `posts:page:${page}:limit:${limit}`;
+  const cached = await redis.get(cacheKey);
 
-  console.log(`posts query : ${Date.now() - t1}ms`);
+  if (cached) {
+    return res.status(200).json(JSON.parse(cached));
+  }
 
-  const t2 = Date.now();
-  const total = await Post.countDocuments();
+  const [posts, total] = await Promise.all([
+    Post.find()
+      .populate({ path: "user", select: "username profilePicture" })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean(),
+    Post.countDocuments(),
+  ]);
 
-  console.log(`countDocuments() took: ${Date.now() - t2}ms`);
   const hasMore = skip + posts.length < total;
 
-  res.status(200).json({
+  const responseData = {
     status: "Success",
     results: posts.length,
     data: {
@@ -113,7 +109,11 @@ const getAllPosts = catchAsync(async (req, res, next) => {
       totalPages: Math.ceil(total / limit),
       total,
     },
-  });
+  };
+
+  await redis.set(cacheKey, JSON.stringify(responseData), "EX", 60); // 1 min TTL
+
+  res.status(200).json(responseData);
 });
 
 const getUserPosts = catchAsync(async (req, res, next) => {
@@ -147,7 +147,6 @@ const saveOrUnsavePost = catchAsync(async (req, res, next) => {
     res.status(200).json({
       status: "Success",
       message: "Post unsaved Successfully",
-      // data: { user },
     });
   } else {
     user.savedPosts.push(postId);
@@ -180,6 +179,8 @@ const deletePost = catchAsync(async (req, res, next) => {
     throw new AppError("You are not authorized to delete this post", 403);
   }
 
+  const creator = await User.findById(userId).select("followers");
+
   await User.updateOne({ _id: userId }, { $pull: { posts: postId } });
 
   await User.updateMany({ savedPosts: postId }, { $pull: { savedPosts: postId } });
@@ -191,6 +192,15 @@ const deletePost = catchAsync(async (req, res, next) => {
   }
 
   await Post.findByIdAndDelete(postId);
+
+  sendPostDeletedToUser(userId.toString(), postId);
+
+  if (creator?.followers?.length > 0) {
+    creator.followers.forEach((followerId) => {
+      sendPostDeletedToUser(followerId.toString(), postId);
+    });
+  }
+
   res.status(200).json({
     status: "Success",
     message: "Post deleted Successfully",
@@ -281,7 +291,7 @@ const getPostComments = catchAsync(async (req, res, next) => {
       path: "user",
       select: "username profilePicture",
     })
-    .sort({ createdAt: 1 }); // Oldest first
+    .sort({ createdAt: 1 });
 
   res.status(200).json({
     status: "Success",

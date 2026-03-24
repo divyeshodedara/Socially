@@ -23,7 +23,7 @@ export const ThemeProvider = ({ children }) => {
 
   useEffect(() => {
     // Apply theme to document
-    console.log("Applying theme:", isDarkMode ? "dark" : "light");
+    // console.log("Applying theme:", isDarkMode ? "dark" : "light");
     if (isDarkMode) {
       document.documentElement.classList.add("dark");
       localStorage.setItem("theme", "dark");
@@ -31,7 +31,7 @@ export const ThemeProvider = ({ children }) => {
       document.documentElement.classList.remove("dark");
       localStorage.setItem("theme", "light");
     }
-    console.log("Document classes:", document.documentElement.className);
+    // console.log("Document classes:", document.documentElement.className);
   }, [isDarkMode]);
 
   // Listen for system theme changes
@@ -49,12 +49,7 @@ export const ThemeProvider = ({ children }) => {
   }, []);
 
   const toggleTheme = () => {
-    console.log(
-      "toggleTheme called! Current:",
-      isDarkMode,
-      "-> New:",
-      !isDarkMode
-    );
+    // // console.log("toggleTheme called! Current:", isDarkMode, "-> New:", !isDarkMode);
     setIsDarkMode((prev) => !prev);
   };
 
@@ -62,9 +57,5 @@ export const ThemeProvider = ({ children }) => {
     setIsDarkMode(theme === "dark");
   };
 
-  return (
-    <ThemeContext.Provider value={{ isDarkMode, toggleTheme, setTheme }}>
-      {children}
-    </ThemeContext.Provider>
-  );
+  return <ThemeContext.Provider value={{ isDarkMode, toggleTheme, setTheme }}>{children}</ThemeContext.Provider>;
 };

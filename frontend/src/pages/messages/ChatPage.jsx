@@ -2,10 +2,10 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Send, Image as ImageIcon, X, Loader2 } from "lucide-react";
-import api from "../api/api";
+import api from "../../api/api";
 import toast from "react-hot-toast";
-import { useAuth } from "../context/AuthContext";
-import { useSocket } from "../context/SocketContext";
+import { useAuth } from "../../context/AuthContext";
+import { useSocket } from "../../context/SocketContext";
 import { format } from "date-fns";
 
 const ChatPage = () => {
@@ -22,7 +22,7 @@ const ChatPage = () => {
   const typingTimeoutRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  // Fetch messages with React Query
+  // Fetch messages for this conversation
   const { data: messages = [], isLoading: loading } = useQuery({
     queryKey: ["messages", userId],
     queryFn: async () => {
@@ -32,10 +32,7 @@ const ChatPage = () => {
       }
       throw new Error("Failed to fetch messages");
     },
-    staleTime: 30000, // Increase to 30 seconds
-    onSuccess: () => {
-      markMessagesAsSeen();
-    },
+    staleTime: 0, // ← also fix this: always refetch on navigation (stale msgs bug)
   });
 
   // Fetch other user's profile
@@ -56,7 +53,7 @@ const ChatPage = () => {
     if (!loading && messages.length > 0) {
       markMessagesAsSeen();
     }
-  }, [userId]);
+  }, [loading, messages.length]); // ← depend on loading + messages.length, not userId
 
   useEffect(() => {
     scrollToBottom();

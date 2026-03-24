@@ -13,7 +13,7 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 60000, // Increase to 60 seconds (data fresh longer)
-      cacheTime: 300000, // Cache persists for 5 minutes
+      gcTime: 300000, // Cache persists for 5 minutes
       refetchOnWindowFocus: false, // Don't refetch on window focus
       refetchOnReconnect: false, // Don't refetch on reconnect (rely on socket events)
       retry: 1, // Retry failed requests once
@@ -55,6 +55,6 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         </AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>
-  </ErrorBoundary>
+  </ErrorBoundary>,
   // </React.StrictMode>
 );

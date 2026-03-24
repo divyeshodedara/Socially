@@ -4,13 +4,7 @@ import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/appError.js";
 
 // Create a notification and send it via socket
-export const createNotification = async ({
-  recipient,
-  sender,
-  type,
-  post,
-  comment,
-}) => {
+export const createNotification = async ({ recipient, sender, type, post, comment }) => {
   try {
     // Don't create notification if user is notifying themselves
     if (recipient.toString() === sender.toString()) {
@@ -48,7 +42,7 @@ export const getNotifications = catchAsync(async (req, res, next) => {
     .populate("sender", "username profilePicture")
     .populate("post", "image")
     .sort("-createdAt")
-    .limit(50);
+    .limit(20);
 
   res.status(200).json({
     status: "success",
@@ -64,7 +58,7 @@ export const markAsRead = catchAsync(async (req, res, next) => {
   const notification = await Notification.findOneAndUpdate(
     { _id: req.params.id, recipient: req.user._id },
     { read: true },
-    { new: true }
+    { new: true },
   );
 
   if (!notification) {
@@ -81,10 +75,7 @@ export const markAsRead = catchAsync(async (req, res, next) => {
 
 // Mark all notifications as read
 export const markAllAsRead = catchAsync(async (req, res, next) => {
-  await Notification.updateMany(
-    { recipient: req.user._id, read: false },
-    { read: true }
-  );
+  await Notification.updateMany({ recipient: req.user._id, read: false }, { read: true });
 
   res.status(200).json({
     status: "success",

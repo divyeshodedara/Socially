@@ -81,6 +81,16 @@ export const sendNewPostToUser = (userId, post) => {
   }
 };
 
+export const sendPostDeletedToUser = (userId, postId) => {
+  const socketId = userSockets.get(userId.toString());
+  if (socketId) {
+    io.to(socketId).emit("postDeleted", { postId });
+    console.log(`Post deleted update sent to user ${userId}`);
+  } else {
+    console.log(`User ${userId} is not connected`);
+  }
+};
+
 // Send message to a specific user
 export const sendMessageToUser = (userId, data) => {
   const socketId = userSockets.get(userId.toString());
@@ -128,4 +138,5 @@ export default {
   broadcastPostLikeUpdate,
   broadcastNewComment,
   sendSavedPostUpdate,
+  sendPostDeletedToUser,
 };

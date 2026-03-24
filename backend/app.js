@@ -4,8 +4,6 @@ import morgan from "morgan";
 import helmet from "helmet";
 import express from "express";
 import cookieParser from "cookie-parser";
-import mongoSanitize from "express-mongo-sanitize";
-
 import AppError from "./utils/appError.js";
 import globalErrorHandler from "./controllers/errorController.js";
 import userRouter from "./routes/userRoutes.js";
@@ -30,10 +28,6 @@ app.use(
 app.use(helmet());
 app.use(cookieParser());
 app.use(express.json({ limit: "10kb" }));
-// app.use(mongoSanitize());
-app.use("/", express.static("uploads"));
-app.use(express.static(path.join(process.cwd(), "public")));
-
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
@@ -41,14 +35,12 @@ if (process.env.NODE_ENV === "development") {
 // Apply rate limiting to all API routes
 // app.use("/api/v1", apiLimiter);
 
-// routes
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/posts", postRouter);
 app.use("/api/v1/notifications", notificationRouter);
 app.use("/api/v1/messages", messageRouter);
 app.use("/api/v1/auth", authRouter);
 
-//health check
 app.get("/check", (req, res, next) => {
   res.status(200).json({ message: "API is working!" });
 });

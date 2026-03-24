@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, RefreshCw, Loader2 } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
-import api from "../api/api";
+import { useAuth } from "../../context/AuthContext";
+import api from "../../api/api";
 import toast from "react-hot-toast";
 
 const SuggestedUsersPage = () => {

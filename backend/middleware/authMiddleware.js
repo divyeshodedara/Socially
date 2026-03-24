@@ -5,7 +5,6 @@ import AppError from "../utils/appError.js";
 import redis from "../utils/redis.js";
 
 const authMiddleware = catchAsync(async (req, res, next) => {
-  const t1 = Date.now();
   const token = req.cookies.token || (req.headers.authorization && req.headers.authorization.split(" ")[1]);
 
   if (!token) {
@@ -19,12 +18,10 @@ const authMiddleware = catchAsync(async (req, res, next) => {
   const cachedUser = await redis.get(cachekey);
   if (cachedUser) {
     req.user = JSON.parse(cachedUser);
-    console.log(`authMiddleware (from cache): ${Date.now() - t1}ms`);
     return next();
   }
 
   const currentUser = await User.findById(decoded.id).select("-password -otp -otpExpiry");
-  console.log(`authMiddleware User.findById: ${Date.now() - t1}ms`);
 
   if (!currentUser) {
     return next(new AppError("The user belonging to this token does no longer exist.", 401));
@@ -32,7 +29,6 @@ const authMiddleware = catchAsync(async (req, res, next) => {
 
   await redis.set(cachekey, JSON.stringify(currentUser), "EX", 60 * 60); // Cache for 1 hour
   req.user = currentUser;
-  // console.log("from authMiddleware:", req.user?._id);
   next();
 });
 
