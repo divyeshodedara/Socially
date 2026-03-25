@@ -37,43 +37,84 @@ const SuggestedUsersPage = () => {
     }
   };
 
-  const handleFollow = async (userId) => {
-    try {
-      const response = await api.post(`/users/follow/${userId}`);
-      if (response.data.status === "success") {
-        toast.success(response.data.message || "User followed successfully");
-        setFollowingUsers((prev) => new Set([...prev, userId]));
+  // const handleFollow = async (userId) => {
+  //   try {
+  //     const response = await api.post(`/users/follow/${userId}`);
+  //     if (response.data.status === "success") {
+  //       toast.success(response.data.message || "User followed successfully");
+  //       setFollowingUsers((prev) => new Set([...prev, userId]));
 
-        updateUser({
-          ...user,
-          following: [...(user.following || []), userId],
-        });
-      }
+  //       updateUser({
+  //         ...user,
+  //         following: [...(user.following || []), userId],
+  //       });
+  //     }
+  //   } catch (error) {
+  //     const message = error.response?.data?.message || "Failed to follow user";
+  //     toast.error(message);
+  //   }
+  // };
+
+  const handleFollow = async (userId) => {
+    setFollowingUsers((prev) => new Set([...prev, userId]));
+
+    updateUser({
+      ...user,
+      following: [...(user.following || []), userId],
+    });
+
+    try {
+      await api.post(`/users/follow/${userId}`);
     } catch (error) {
-      const message = error.response?.data?.message || "Failed to follow user";
-      toast.error(message);
+      setFollowingUsers((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(userId);
+        return newSet;
+      });
+
+      toast.error("Failed to follow user");
     }
   };
 
-  const handleUnfollow = async (userId) => {
-    try {
-      const response = await api.post(`/users/unfollow/${userId}`);
-      if (response.data.status === "success") {
-        toast.success(response.data.message || "User unfollowed successfully");
-        setFollowingUsers((prev) => {
-          const newSet = new Set(prev);
-          newSet.delete(userId);
-          return newSet;
-        });
+  // const handleUnfollow = async (userId) => {
+  //   try {
+  //     const response = await api.post(`/users/unfollow/${userId}`);
+  //     if (response.data.status === "success") {
+  //       toast.success(response.data.message || "User unfollowed successfully");
+  //       setFollowingUsers((prev) => {
+  //         const newSet = new Set(prev);
+  //         newSet.delete(userId);
+  //         return newSet;
+  //       });
 
-        updateUser({
-          ...user,
-          following: (user.following || []).filter((id) => id !== userId),
-        });
-      }
+  //       updateUser({
+  //         ...user,
+  //         following: (user.following || []).filter((id) => id !== userId),
+  //       });
+  //     }
+  //   } catch (error) {
+  //     const message = error.response?.data?.message || "Failed to unfollow user";
+  //     toast.error(message);
+  //   }
+  // };
+
+  const handleUnfollow = async (userId) => {
+    setFollowingUsers((prev) => {
+      const newSet = new Set(prev);
+      newSet.delete(userId);
+      return newSet;
+    });
+
+    updateUser({
+      ...user,
+      following: (user.following || []).filter((id) => id !== userId),
+    });
+
+    try {
+      await api.post(`/users/unfollow/${userId}`);
     } catch (error) {
-      const message = error.response?.data?.message || "Failed to unfollow user";
-      toast.error(message);
+      setFollowingUsers((prev) => new Set([...prev, userId]));
+      toast.error("Failed to unfollow user");
     }
   };
 

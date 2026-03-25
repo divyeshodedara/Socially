@@ -11,7 +11,7 @@ const createRateLimiter = (windowMs, max, message = "Too many attempts. Please t
       const ip = req.ip || req.remoteAddress;
 
       if (req.user?.id) {
-        return req.user.id;
+        return req.user._id;
       }
       return ipKeyGenerator(ip);
     },
@@ -28,23 +28,25 @@ const createRateLimiter = (windowMs, max, message = "Too many attempts. Please t
 export const apiLimiter = createRateLimiter(15 * 60 * 1000, 500, "Too many requests. Please try again later.");
 
 // Strict limiter for auth routes - 5 requests per 15 minutes
-export const authLimiter = createRateLimiter(15 * 60 * 1000, 5);
+export const authLimiter = createRateLimiter(15 * 60 * 1000, 5, "Too many authentication attempts. Please try again later.");
 
 // Login limiter - 5 requests per 15 minutes
-export const loginLimiter = createRateLimiter(15 * 60 * 1000, 5);
+export const loginLimiter = createRateLimiter(15 * 60 * 1000, 5, "Too many login attempts. Please try again later.");
 
 // Password reset limiter - 3 requests per hour
-export const passwordResetLimiter = createRateLimiter(60 * 60 * 1000, 3);
+export const passwordResetLimiter = createRateLimiter(60 * 60 * 1000, 3, "Too many password reset attempts. Please try again later.");
 
 // Post creation limiter - 10 posts per hour
-export const postCreationLimiter = createRateLimiter(60 * 60 * 1000, 10);
+export const postCreationLimiter = createRateLimiter(60 * 60 * 1000, 10, "Too many posts created. Please try again later.");
 
 // Message limiter - 50 messages per 15 minutes
-export const messageLimiter = createRateLimiter(15 * 60 * 1000, 50);
+export const messageLimiter = createRateLimiter(15 * 60 * 1000, 50, "Too many messages. Please try again later.");
 
 // Email verification limiter - 3 requests per hour
-export const emailVerificationLimiter = createRateLimiter(60 * 60 * 1000, 3);
+export const emailVerificationLimiter = createRateLimiter(60 * 60 * 1000, 3., "Too many verification attempts. Please try again later.");
 
+// Interaction limiter - 100 interactions (likes/comments) per hour
 export const interactionLimiter = createRateLimiter(60 * 60 * 1000, 100, "Too many interactions. Please slow down.");
 
+// Comment limiter - 30 comments per hour
 export const commentLimiter = createRateLimiter(60 * 60 * 1000, 30, "Too many comments. Please slow down.");

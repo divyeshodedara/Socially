@@ -16,7 +16,7 @@ const sendToken = (user, statusCode, res, message) => {
   const token = signToken(user._id);
 
   const cookieOptions = {
-    expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+    expires: new Date(Date.now() + Number(process.env.COOKIE_EXPIRES_IN)),
     httpOnly: true,
     sameSite: process.env.NODE_ENV === "development" ? "lax" : "none",
     secure: process.env.NODE_ENV === "development" ? false : true,
@@ -52,6 +52,12 @@ const signup = catchAsync(async (req, res, next) => {
 
   if (existingUser) {
     return next(new AppError("User already exists", 400));
+  }
+
+  const userNameExists = await User.findOne({ username });
+
+  if (userNameExists) {
+    return next(new AppError("Username already taken", 400));
   }
 
   const otp = generateOTP();
@@ -172,14 +178,21 @@ const login = catchAsync(async (req, res, next) => {
 });
 
 const logout = catchAsync(async (req, res, next) => {
-  res.cookie("token", "loggedout", {
-    expires: new Date(Date.now() + 10 * 1000),
+  res.cookie("token", "", {
     httpOnly: true,
     sameSite: process.env.NODE_ENV === "development" ? "lax" : "none",
     secure: process.env.NODE_ENV === "development" ? false : true,
+    maxAge: 0,
   });
-  await redis.del(`user:${req.user.id}`);
-  res.status(200).json({ status: "success", message: "Logged out successfully!" });
+
+  if (req.user?._id) {
+    await redis.del(`user:${req.user._id}`);
+  }
+
+  res.status(200).json({
+    status: "success",
+    message: "Logged out successfully!",
+  });
 });
 
 const forgetPassword = catchAsync(async (req, res, next) => {

@@ -43,12 +43,10 @@ const MessageIcon = () => {
     if (socket) {
       const handleNewMessage = (data) => {
         if (data.type === "newMessage") {
-          // Invalidate to trigger refetch
-          queryClient.invalidateQueries(["messages", "unread"]);
+          queryClient.setQueryData(["messages", "unread"], (old = 0) => old + 1);
         }
         if (data.type === "messagesSeen") {
-          // Invalidate to trigger refetch
-          queryClient.invalidateQueries(["messages", "unread"]);
+          queryClient.invalidateQueries(["messages", "unread"]); // refetch is fine here
         }
       };
 
@@ -74,7 +72,7 @@ const MessageIcon = () => {
     >
       <MessageCircle className="w-6 h-6" />
       {unreadCount > 0 && (
-        <span className="absolute top-0 right-0 min-w-[18px] h-[18px] flex items-center justify-center bg-red-500 text-white text-xs font-bold rounded-full">
+        <span className="absolute top-0 right-0 min-w-[18px] h-[18px] flex items-center justify-center bg-blue-500 text-white text-xs font-bold rounded-full">
           {unreadCount > 9 ? "9+" : unreadCount}
         </span>
       )}

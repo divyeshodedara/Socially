@@ -29,7 +29,7 @@ const MessagesPage = () => {
       }
       throw new Error("Failed to fetch conversations");
     },
-    staleTime: 60000, // Cache for 1 minute
+    staleTime: 0, // Cache for 1 minute
     retry: (failureCount, error) => {
       // Don't retry on rate limit errors
       if (error.response?.status === 429) return false;
@@ -41,8 +41,7 @@ const MessagesPage = () => {
   useEffect(() => {
     if (socket) {
       const handleNewMessage = (data) => {
-        if (data.type === "newMessage") {
-          // Invalidate conversations to trigger refetch
+        if (data.type === "newMessage" || data.type === "messagesSeen") {
           queryClient.invalidateQueries(["conversations"]);
         }
       };
@@ -55,13 +54,17 @@ const MessagesPage = () => {
     }
   }, [socket, queryClient]);
 
+  // FIX 2: Safely check user?._id to prevent crashes on hard reloads
   const getOtherParticipant = (participants) => {
-    return participants.find((p) => p._id !== user._id);
+    return participants?.find((p) => p?._id !== user?._id);
   };
 
+  // FIX 1: Safely handle undefined usernames and prevent toLowerCase crashes
   const filteredConversations = conversations.filter((conv) => {
-    const otherUser = getOtherParticipant(conv.participants);
-    return otherUser?.username.toLowerCase().includes(searchQuery.toLowerCase());
+    const otherUser = getOtherParticipant(conv?.participants || []);
+    if (!otherUser?.username) return false; // Skip if no valid user/username
+
+    return otherUser.username.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
   if (loading) {
@@ -109,7 +112,8 @@ const MessagesPage = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
+    // <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto pb-16 lg:pb-0">
       <div className="bg-mono-white dark:bg-mono-900 border border-mono-300 dark:border-mono-800 rounded-card shadow-mono dark:shadow-mono-md">
         {/* Header */}
         <div className="border-b border-mono-300 dark:border-mono-800 p-4">
@@ -141,19 +145,26 @@ const MessagesPage = () => {
           ) : (
             filteredConversations.map((conversation) => {
               const otherUser = getOtherParticipant(conversation.participants);
+
+              // FIX 4: Safety catch to prevent rendering corrupted conversations
+              if (!otherUser) return null;
+
               const lastMessage = conversation.lastMessage;
+
               const isUnread =
                 lastMessage &&
                 !lastMessage.seen &&
-                lastMessage.sender?._id !== user._id &&
-                lastMessage.receiver?._id === user._id;
+                lastMessage.sender?._id?.toString() !== user._id?.toString() &&
+                lastMessage.receiver?._id?.toString() === user._id?.toString();
 
               return (
                 <div
                   key={conversation._id}
                   onClick={() => navigate(`/messages/${otherUser._id}`)}
                   onMouseEnter={() => {
-                    // Prefetch messages when hovering over conversation
+                    // FIX 4 continued: Safety check before prefetching
+                    if (!otherUser._id) return;
+
                     queryClient.prefetchQuery({
                       queryKey: ["messages", otherUser._id],
                       queryFn: async () => {
@@ -170,7 +181,7 @@ const MessagesPage = () => {
                   <div className="flex items-center gap-4">
                     <img
                       src={otherUser?.profilePicture || "https://via.placeholder.com/50"}
-                      alt={otherUser?.username}
+                      alt={otherUser?.username || "User"}
                       className="w-12 h-12 rounded-full object-cover border-2 border-mono-300 dark:border-mono-700"
                     />
                     <div className="flex-1 min-w-0">
@@ -180,9 +191,10 @@ const MessagesPage = () => {
                             isUnread ? "text-mono-black dark:text-mono-white" : "text-mono-700 dark:text-mono-300"
                           }`}
                         >
-                          {otherUser?.username}
+                          {otherUser?.username || "Unknown User"}
                         </h3>
-                        {lastMessage && (
+                        {/* FIX 3: Ensure createdAt exists before formatting date */}
+                        {lastMessage?.createdAt && (
                           <span className="text-xs text-mono-500">
                             {formatDistanceToNow(new Date(lastMessage.createdAt), {
                               addSuffix: true,

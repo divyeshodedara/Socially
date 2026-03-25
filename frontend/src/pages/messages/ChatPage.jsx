@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useLayoutEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Send, Image as ImageIcon, X, Loader2 } from "lucide-react";
@@ -21,6 +21,7 @@ const ChatPage = () => {
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const fileInputRef = useRef(null);
+  const isInitialLoad = useRef(true);
 
   // Fetch messages for this conversation
   const { data: messages = [], isLoading: loading } = useQuery({
@@ -48,14 +49,20 @@ const ChatPage = () => {
     staleTime: 120000, // Cache for 2 minutes
   });
 
+  useEffect(() => {
+    return () => {
+      setIsTyping(false);
+    };
+  }, []);
+
   // Mark messages as seen on mount
   useEffect(() => {
-    if (!loading && messages.length > 0) {
-      markMessagesAsSeen();
+    if (!loading) {
+      markMessagesAsSeen(); // call even if messages.length is 0, it's a no-op on the server
     }
-  }, [loading, messages.length]); // ← depend on loading + messages.length, not userId
+  }, [loading]); // only depend on loading, not messages.length // ← depend on loading + messages.length, not userId
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     scrollToBottom();
   }, [messages]);
 
@@ -64,16 +71,13 @@ const ChatPage = () => {
     if (socket) {
       const handleMessage = (data) => {
         if (data.type === "newMessage" && data.message.sender._id === userId) {
-          // Update messages cache optimistically
           queryClient.setQueryData(["messages", userId], (old = []) => [...old, data.message]);
           markMessagesAsSeen();
         }
-        if (data.type === "messagesSeen" && data.seenBy === currentUser._id) {
-          // Update seen status for sent messages when receiver has seen them
+        if (data.type === "messagesSeen" && data.seenBy === userId) {
           queryClient.setQueryData(["messages", userId], (old = []) =>
             old.map((msg) => (msg.sender?._id === currentUser._id ? { ...msg, seen: true } : msg)),
           );
-          // Also invalidate conversations to update last message status
           queryClient.invalidateQueries(["conversations"]);
         }
       };
@@ -98,23 +102,42 @@ const ChatPage = () => {
         socket.off("message", handleMessage);
         socket.off("userTyping", handleTyping);
         socket.off("userStoppedTyping", handleStoppedTyping);
+
+        // Bug 8 fix — clear typing indicator on the other user's screen when leaving
+        socket.emit("stopTyping", {
+          senderId: currentUser._id,
+          receiverId: userId,
+        });
+
+        if (typingTimeoutRef.current) {
+          clearTimeout(typingTimeoutRef.current);
+        }
       };
     }
   }, [socket, userId, currentUser, queryClient]);
 
+  // const markMessagesAsSeen = async () => {
+  //   try {
+  //     await api.patch(`/messages/${userId}/seen`);
+  //     // Invalidate unread count
+  //     queryClient.invalidateQueries(["messages", "unread"]);
+  //     // Invalidate conversations to update last message seen status
+  //     queryClient.invalidateQueries(["conversations"]);
+  //   } catch (error) {
+  //     console.error("Failed to mark messages as seen:", error);
+  //   }
+  // };
+
   const markMessagesAsSeen = async () => {
     try {
       await api.patch(`/messages/${userId}/seen`);
-      // Invalidate unread count
       queryClient.invalidateQueries(["messages", "unread"]);
-      // Invalidate conversations to update last message seen status
-      queryClient.invalidateQueries(["conversations"]);
+      queryClient.invalidateQueries(["conversations"]); // this re-fetches lastMessage with seen: true
     } catch (error) {
       console.error("Failed to mark messages as seen:", error);
     }
   };
 
-  // Mutation for sending messages
   const sendMessageMutation = useMutation({
     mutationFn: async (formData) => {
       const response = await api.post("/messages/send", formData, {
@@ -139,9 +162,19 @@ const ChatPage = () => {
   });
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (isInitialLoad.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "instant" });
+    } else {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
   };
 
+  // After first load, mark it as done
+  useEffect(() => {
+    if (!loading && messages.length > 0) {
+      isInitialLoad.current = false;
+    }
+  }, [loading]);
   const handleTyping = () => {
     if (socket) {
       socket.emit("typing", {
@@ -221,6 +254,7 @@ const ChatPage = () => {
 
   return (
     <div className="max-w-4xl mx-auto h-[calc(100vh-120px)] flex flex-col">
+      {/* <div className="max-w-4xl mx-auto h-[calc(100vh-64px)] lg:h-[calc(100vh-120px)] flex flex-col pb-16 lg:pb-0"> */}
       <div className="bg-mono-white dark:bg-mono-900 border border-mono-300 dark:border-mono-800 rounded-card shadow-mono dark:shadow-mono-md flex flex-col h-full">
         {/* Header */}
         <div className="border-b border-mono-300 dark:border-mono-800 p-4 flex items-center gap-4">
@@ -316,8 +350,9 @@ const ChatPage = () => {
               setNewMessage(e.target.value);
               handleTyping();
             }}
+            autoFocus
             placeholder="Type a message..."
-            className="flex-1 px-4 py-2 bg-mono-100 dark:bg-mono-800 border border-mono-300 dark:border-mono-700 rounded-input focus:outline-none focus:ring-2 focus:ring-mono-black dark:focus:ring-mono-white text-mono-black dark:text-mono-white placeholder-mono-500"
+            className="flex-1 min-w-0 px-4 py-2 bg-mono-100 dark:bg-mono-800 border border-mono-300 dark:border-mono-700 rounded-input focus:outline-none focus:ring-2 focus:ring-mono-black dark:focus:ring-mono-white text-mono-black dark:text-mono-white placeholder-mono-500"
             disabled={sendMessageMutation.isLoading}
           />
           <button

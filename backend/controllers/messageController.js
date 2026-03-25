@@ -90,7 +90,7 @@ export const sendMessage = catchAsync(async (req, res, next) => {
 // Get all messages between two users
 export const getMessages = catchAsync(async (req, res, next) => {
   const { userId } = req.params;
-  const currentUserId = req.user.id;
+  const currentUserId = req.user._id;
 
   const messages = await Message.find({
     $or: [
@@ -147,8 +147,7 @@ export const getConversations = catchAsync(async (req, res, next) => {
 // Mark messages as seen
 export const markAsSeen = catchAsync(async (req, res, next) => {
   const { userId } = req.params;
-  const currentUserId = req.user.id;
-
+  const currentUserId = req.user._id;
   await Message.updateMany(
     {
       sender: userId,
@@ -173,9 +172,8 @@ export const markAsSeen = catchAsync(async (req, res, next) => {
   });
 });
 
-// Get unread message count
 export const getUnreadCount = catchAsync(async (req, res, next) => {
-  const userId = req.user.id;
+  const userId = req.user._id;
 
   const unreadCount = await Message.countDocuments({
     receiver: userId,

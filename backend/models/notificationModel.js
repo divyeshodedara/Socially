@@ -21,11 +21,9 @@ const notificationSchema = new mongoose.Schema(
     post: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Post",
-      // Only required for like and comment notifications
     },
     comment: {
       type: String,
-      // Store comment text for comment notifications
     },
     read: {
       type: Boolean,
@@ -34,10 +32,9 @@ const notificationSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
-// Index for faster queries
 notificationSchema.index({ recipient: 1, read: 1, createdAt: -1 });
 
 const Notification = mongoose.model("Notification", notificationSchema);

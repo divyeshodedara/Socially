@@ -34,15 +34,21 @@ const Post = ({ post, onUpdate }) => {
   useEffect(() => {
     if (!socket) return;
 
+    // const handlePostLikeUpdate = ({ postId, likesCount, userId }) => {
+    //   if (postId === post._id) {
+    //     setLikesCount(likesCount);
+
+    //     // Only update isLiked if the current user triggered this event
+    //     // Use functional updater to always read current state, not stale closure
+    //     if (userId === user?._id) {
+    //       setIsLiked((prev) => !prev);
+    //     }
+    //   }
+    // };
     const handlePostLikeUpdate = ({ postId, likesCount, userId }) => {
       if (postId === post._id) {
-        setLikesCount(likesCount);
-
-        // Only update isLiked if the current user triggered this event
-        // Use functional updater to always read current state, not stale closure
-        if (userId === user?._id) {
-          setIsLiked((prev) => !prev);
-        }
+        setLikesCount(likesCount); // sync final count from server
+        // No isLiked toggle here — optimistic update already handled it for the current user
       }
     };
 
@@ -73,18 +79,33 @@ const Post = ({ post, onUpdate }) => {
     };
   }, [socket, post._id, user?._id, showComments]);
 
+  // const handleLike = async () => {
+  //   try {
+  //     const response = await api.post(`/posts/like-dislike/${post._id}`);
+  //     if (response.data.status === "Success") {
+  //       setIsLiked(!isLiked);
+  //       // setLikesCount((prev) => (isLiked ? prev - 1 : prev + 1));
+  //     }
+  //   } catch (error) {
+  //     toast.error("Failed to like post");
+  //   }
+  // };
+
   const handleLike = async () => {
+    // Optimistically update UI immediately
+    const wasLiked = isLiked;
+    setIsLiked(!wasLiked);
+    setLikesCount((prev) => (wasLiked ? prev - 1 : prev + 1));
+
     try {
-      const response = await api.post(`/posts/like-dislike/${post._id}`);
-      if (response.data.status === "Success") {
-        setIsLiked(!isLiked);
-        // setLikesCount((prev) => (isLiked ? prev - 1 : prev + 1));
-      }
+      await api.post(`/posts/like-dislike/${post._id}`);
     } catch (error) {
+      // Revert on failure
+      setIsLiked(wasLiked);
+      setLikesCount((prev) => (wasLiked ? prev + 1 : prev - 1));
       toast.error("Failed to like post");
     }
   };
-
   const handleSave = async () => {
     try {
       const response = await api.post(`/posts/save/${post._id}`);
@@ -119,23 +140,42 @@ const Post = ({ post, onUpdate }) => {
     }
   };
 
-  const handleShare = async () => {
-    const url = `${window.location.origin}/post/${post._id}`;
+  // const handleShare = async () => {
+  //   const url = `${window.location.origin}/post/${post._id}`;
 
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: "Check this post",
-          text: post.caption || "Interesting post!",
-          url,
-        });
-      } else {
-        await navigator.clipboard.writeText(url);
-        alert("Link copied!");
-      }
-    } catch (err) {
-      console.log(err);
-    }
+  //   try {
+  //     if (navigator.share) {
+  //       await navigator.share({
+  //         title: "Check this post",
+  //         text: post.caption || "Interesting post!",
+  //         url,
+  //       });
+  //     } else {
+  //       await navigator.clipboard.writeText(url);
+  //       alert("Link copied!");
+  //     }
+  //   } catch (err) {
+  //     console.log(err);
+  //   }
+  // };
+
+  const [showShareMenu, setShowShareMenu] = useState(false);
+
+  const handleShare = async (platform) => {
+    const url = encodeURIComponent(`${window.location.origin}/profile/${post.user?._id}`);
+    const text = encodeURIComponent(post.caption || "Check out this post on Socially!");
+
+    const platforms = {
+      copy: async () => {
+        await navigator.clipboard.writeText(decodeURIComponent(url));
+        toast.success("Link copied!");
+      },
+      whatsapp: () => window.open(`https://wa.me/?text=${text}%20${url}`, "_blank"),
+      twitter: () => window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, "_blank"),
+    };
+
+    await platforms[platform]?.();
+    setShowShareMenu(false);
   };
 
   const focusCommentInput = () => {
@@ -278,7 +318,8 @@ const Post = ({ post, onUpdate }) => {
       )}
       {/* Action Buttons */}
       <div className="flex items-center justify-between px-4 pb-2">
-        <div className="flex items-center space-x-6 text-mono-600 dark:text-mono-400">
+        {/* <div className="flex items-center space-x-6 text-mono-600 dark:text-mono-400"> */}
+        <div className="flex items-center space-x-4 sm:space-x-6 text-mono-600 dark:text-mono-400">
           <button
             onClick={handleLike}
             className="flex items-center space-x-2 hover:scale-110 hover:text-blue-500 transition-all duration-200"
@@ -293,12 +334,48 @@ const Post = ({ post, onUpdate }) => {
             <MessageCircle className="w-5 h-5" />
             <span className="text-sm font-medium">{commentsCount}</span>
           </button>
-          <button
+          {/* <button
             onClick={handleShare}
             className="flex items-center space-x-2 hover:scale-110 hover:text-green-500 transition-all duration-200"
           >
             <ArrowRight className="w-5 h-5" />
-          </button>
+          </button> */}
+          <div className="relative">
+            <button
+              onClick={() => setShowShareMenu(!showShareMenu)}
+              className="flex items-center space-x-2 hover:scale-110 hover:text-green-500 transition-all duration-200"
+            >
+              <ArrowRight className="w-5 h-5" />
+            </button>
+
+            {showShareMenu && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="absolute bottom-8 left-0 bg-mono-white dark:bg-mono-900 border border-mono-200 dark:border-mono-800 rounded-card shadow-lg p-2 flex flex-col gap-1 z-10 w-40"
+              >
+                <button
+                  onClick={() => handleShare("copy")}
+                  className="flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-mono-100 dark:hover:bg-mono-800 text-mono-black dark:text-mono-white"
+                >
+                  📋 Copy link
+                </button>
+                <button
+                  onClick={() => handleShare("whatsapp")}
+                  className="flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-mono-100 dark:hover:bg-mono-800 text-mono-black dark:text-mono-white"
+                >
+                  💬 WhatsApp
+                </button>
+                <button
+                  onClick={() => handleShare("twitter")}
+                  className="flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-mono-100 dark:hover:bg-mono-800 text-mono-black dark:text-mono-white"
+                >
+                  🐦 Twitter
+                </button>
+              </motion.div>
+            )}
+          </div>
         </div>
 
         <button
@@ -333,7 +410,7 @@ const Post = ({ post, onUpdate }) => {
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
               placeholder="Add a comment..."
-              className="flex-1 bg-mono-100 dark:bg-mono-800 border border-mono-200 dark:border-mono-700 rounded-full px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 min-w-0 bg-mono-100 dark:bg-mono-800 border border-mono-200 dark:text-mono-200 dark:border-mono-700 rounded-full px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
               disabled={submittingComment}
             />
             <button
@@ -388,233 +465,3 @@ const Post = ({ post, onUpdate }) => {
 };
 
 export default Post;
-
-// import { motion } from "framer-motion";
-// import { Link } from "react-router-dom";
-// import { Heart, MessageCircle, Bookmark, MoreHorizontal, Trash2, ArrowRight } from "lucide-react";
-
-// const Post = ({
-//   post,
-//   isOwnPost,
-//   handleLike,
-//   toggleComments,
-//   handleSave,
-//   handleDelete,
-//   handleComment,
-//   comments,
-//   loadingComments,
-//   showComments,
-//   setShowMenu,
-//   showMenu,
-//   deleting,
-//   commentText,
-//   setCommentText,
-//   submittingComment,
-//   likesCount,
-//   commentsCount,
-//   isLiked,
-//   isSaved,
-//   user,
-// }) => {
-//   // 🔥 SHARE FUNCTION
-//   const handleShare = async () => {
-//     const url = `${window.location.origin}/post/${post._id}`;
-
-//     try {
-//       if (navigator.share) {
-//         await navigator.share({
-//           title: "Check this post",
-//           text: post.caption || "Interesting post!",
-//           url,
-//         });
-//       } else {
-//         await navigator.clipboard.writeText(url);
-//         alert("Link copied!");
-//       }
-//     } catch (err) {
-//       console.log(err);
-//     }
-//   };
-
-//   return (
-//     <motion.div
-//       initial={{ opacity: 0, y: 20 }}
-//       animate={{ opacity: 1, y: 0 }}
-//       transition={{ duration: 0.4, ease: "easeOut" }}
-//       className="bg-mono-white dark:bg-mono-900 rounded-card border border-mono-200 dark:border-mono-800 shadow-lg"
-//     >
-//       {/* HEADER */}
-//       <div className="flex items-center justify-between px-4 py-3">
-//         <Link to={`/profile/${post.user?._id}`} className="flex items-center space-x-3 group">
-//           <img
-//             src={
-//               post.user?.profilePicture ||
-//               "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRU0a0iDtUPUzs0GFM6DSuovK0uOE4-Sc40Pg&s"
-//             }
-//             alt={post.user?.username}
-//             className="w-10 h-10 rounded-full object-cover"
-//           />
-//           <div className="flex items-center space-x-2 flex-wrap">
-//             <p className="font-semibold text-sm text-mono-black dark:text-mono-white group-hover:underline transition">
-//               {post.user?.name || post.user?.username}
-//             </p>
-//             <p className="text-sm text-mono-500 dark:text-mono-400">@{post.user?.username}</p>
-//             <p className="text-sm text-mono-500 dark:text-mono-400">
-//               ·{" "}
-//               {formatDistanceToNow(new Date(post.createdAt), {
-//                 addSuffix: true,
-//               })}
-//             </p>
-//           </div>
-//         </Link>
-
-//         {isOwnPost && (
-//           <div className="relative">
-//             <button
-//               onClick={() => setShowMenu(!showMenu)}
-//               className="p-2 rounded-full hover:bg-mono-100 dark:hover:bg-mono-800"
-//             >
-//               <MoreHorizontal className="w-5 h-5" />
-//             </button>
-
-//             {showMenu && (
-//               <motion.div
-//                 initial={{ opacity: 0, scale: 0.95 }}
-//                 animate={{ opacity: 1, scale: 1 }}
-//                 className="absolute right-0 mt-2 w-40 bg-mono-white dark:bg-mono-900 rounded-input shadow-lg border z-10"
-//               >
-//                 <button
-//                   onClick={handleDelete}
-//                   disabled={deleting}
-//                   className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10"
-//                 >
-//                   <Trash2 className="w-4 h-4" />
-//                   {deleting ? "Deleting..." : "Delete Post"}
-//                 </button>
-//               </motion.div>
-//             )}
-//           </div>
-//         )}
-//       </div>
-
-//       {/* CAPTION */}
-//       {post.caption && (
-//         <div className="px-4 pb-3">
-//           <p className="text-mono-800 dark:text-mono-200 leading-relaxed">{post.caption}</p>
-//         </div>
-//       )}
-
-//       {/* IMAGE (FIXED 🔥) */}
-//       {post.image?.url && (
-//         <div className="px-4 pb-3">
-//           <div
-//             onDoubleClick={handleLike}
-//             className="w-full max-h-[500px] overflow-hidden rounded-card border border-mono-200 dark:border-mono-800"
-//           >
-//             <img
-//               src={post.image.url}
-//               alt="Post"
-//               loading="lazy"
-//               className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-//             />
-//           </div>
-//         </div>
-//       )}
-
-//       {/* ACTION BUTTONS */}
-//       <div className="flex items-center justify-between px-4 pb-2">
-//         <div className="flex items-center space-x-6 text-mono-600 dark:text-mono-400">
-//           {/* LIKE */}
-//           <button
-//             onClick={handleLike}
-//             className="flex items-center space-x-2 hover:scale-110 hover:text-red-500 transition-all duration-200"
-//           >
-//             <Heart className={`w-5 h-5 ${isLiked ? "fill-current text-red-500" : ""}`} />
-//             <span className="text-sm font-medium">{likesCount}</span>
-//           </button>
-
-//           {/* COMMENT */}
-//           <button
-//             onClick={toggleComments}
-//             className="flex items-center space-x-2 hover:scale-110 hover:text-blue-500 transition-all duration-200"
-//           >
-//             <MessageCircle className="w-5 h-5" />
-//             <span className="text-sm font-medium">{commentsCount}</span>
-//           </button>
-
-//           {/* SHARE */}
-//           <button
-//             onClick={handleShare}
-//             className="flex items-center space-x-2 hover:scale-110 hover:text-green-500 transition-all duration-200"
-//           >
-//             <ArrowRight className="w-5 h-5" />
-//           </button>
-//         </div>
-
-//         {/* SAVE */}
-//         <button onClick={handleSave} className="hover:text-yellow-500 transition-colors duration-200">
-//           <Bookmark className={`w-5 h-5 ${isSaved ? "fill-current text-yellow-500" : ""}`} />
-//         </button>
-//       </div>
-
-//       {/* COMMENTS */}
-//       {showComments && (
-//         <motion.div
-//           initial={{ opacity: 0, height: 0 }}
-//           animate={{ opacity: 1, height: "auto" }}
-//           className="border-t border-mono-200 dark:border-mono-800 pt-4 px-4 pb-2"
-//         >
-//           {/* ADD COMMENT */}
-//           <form onSubmit={handleComment} className="flex items-center space-x-3 mb-4">
-//             <img
-//               src={user?.profilePicture || "https://via.placeholder.com/32"}
-//               alt=""
-//               className="w-8 h-8 rounded-full object-cover"
-//             />
-//             <input
-//               type="text"
-//               value={commentText}
-//               onChange={(e) => setCommentText(e.target.value)}
-//               placeholder="Add a comment..."
-//               className="flex-1 bg-mono-100 dark:bg-mono-800 rounded-full px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
-//             />
-//             <button
-//               type="submit"
-//               disabled={!commentText.trim() || submittingComment}
-//               className="text-blue-500 font-semibold text-sm"
-//             >
-//               {submittingComment ? "Posting..." : "Post"}
-//             </button>
-//           </form>
-
-//           {/* COMMENTS LIST */}
-//           <div className="space-y-4">
-//             {loadingComments ? (
-//               <div className="text-center py-4">
-//                 <div className="animate-spin h-6 w-6 border-t-2 border-blue-500 mx-auto rounded-full"></div>
-//               </div>
-//             ) : comments.length > 0 ? (
-//               comments.map((comment) => (
-//                 <div key={comment._id} className="flex space-x-3">
-//                   <img
-//                     src={comment.user?.profilePicture || "https://via.placeholder.com/32"}
-//                     alt=""
-//                     className="w-8 h-8 rounded-full object-cover"
-//                   />
-//                   <div>
-//                     <p className="font-semibold text-sm">{comment.user?.username}</p>
-//                     <p className="text-sm">{comment.text}</p>
-//                   </div>
-//                 </div>
-//               ))
-//             ) : (
-//               <p className="text-sm text-center">No comments yet</p>
-//             )}
-//           </div>
-//         </motion.div>
-//       )}
-//     </motion.div>
-//   );
-// };
-
-// export default Post;

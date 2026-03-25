@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { Home, PlusSquare, User, Search, Loader2, X } from "lucide-react";
+import { Home, PlusSquare, User, Search, Loader2, X, Plus } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import CreatePostModal from "../posts/CreatePostModal";
 import DarkModeToggle from "../common/DarkModeToggle";
@@ -82,13 +82,17 @@ const Navbar = () => {
     <nav className="bg-mono-white dark:bg-mono-black border-b border-mono-200 dark:border-mono-800 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Logo */}
           <NavLink to="/" className="text-2xl font-bold text-mono-black dark:text-mono-white">
-            Socially.
+            <span className="tracking-tight">
+              Socially
+              <span className="text-blue-500 text-[28px] ml-0.5">.</span>
+              <span className="text-green-500 text-[28px]">.</span>
+              <span className="text-pink-500 text-[28px]">.</span>
+              <span className="text-blue-500 text-3xl drop-shadow-[0_0_6px_#3b82f6]">.</span>
+            </span>
           </NavLink>
-
           {/* Search Bar */}
-          <div className="hidden md:flex flex-1 max-w-sm" ref={searchRef}>
+          <div className="flex flex-1 max-w-sm mx-4 lg:mx-0" ref={searchRef}>
             <div className="relative w-full">
               {/* Search icon */}
               <Search
@@ -190,8 +194,16 @@ const Navbar = () => {
           </div>
 
           {/* Action Icons */}
-          <div className="flex items-center space-x-5">
+          <div className="hidden lg:flex items-center space-x-5">
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-full bg-mono-black dark:bg-mono-white text-mono-white dark:text-mono-black hover:opacity-80 transition-all duration-200 font-semibold text-sm"
+            >
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:block">Create</span>
+            </button>
             <DarkModeToggle />
+
             <NavLink
               to="/"
               className={({ isActive }) =>
@@ -204,12 +216,7 @@ const Navbar = () => {
             >
               <Home className="w-6 h-6" />
             </NavLink>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="p-2 rounded-lg text-mono-500 dark:text-mono-400 hover:bg-mono-100 dark:hover:bg-mono-800 hover:text-mono-black dark:hover:text-mono-white"
-            >
-              <PlusSquare className="w-6 h-6" />
-            </button>
+
             <MessageIcon />
             <NotificationBell />
             <NavLink
@@ -225,10 +232,12 @@ const Navbar = () => {
               <img
                 src={user?.profilePicture || "https://via.placeholder.com/40"}
                 alt="profile"
-                // className="w-8 h-8 rounded-full object-cover border border-mono-200 dark:border-mono-700"
                 className="w-8 h-8 rounded-full object-cover ring-2 ring-mono-200 dark:ring-mono-700"
               />
             </NavLink>
+          </div>
+          <div className="flex lg:hidden items-center">
+            <DarkModeToggle />
           </div>
         </div>
       </div>

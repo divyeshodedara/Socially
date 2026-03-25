@@ -20,7 +20,7 @@ app.set("trust proxy", 1);
 
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    origin: process.env.FRONTEND_URL,
     credentials: true,
   }),
 );
@@ -32,8 +32,7 @@ if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
 
-// Apply rate limiting to all API routes
-// app.use("/api/v1", apiLimiter);
+app.use("/api/v1", apiLimiter);
 
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/posts", postRouter);

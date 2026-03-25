@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useRef } from "react";
 import { io } from "socket.io-client";
 import { useAuth } from "./AuthContext";
 
@@ -15,48 +15,34 @@ export const useSocket = () => {
 export const SocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
   const [notifications, setNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [unreadCount, setUnreadCount] = useState(null);
   const { user, isAuthenticated } = useAuth();
+  const socketRef = useRef(null);
 
   useEffect(() => {
-    if (isAuthenticated && user) {
-      // Connect to socket server (bypasses Vite proxy, connects directly to backend)
-      const socketInstance = io(import.meta.env.VITE_SOCKET_URL || "http://localhost:3000", {
-        withCredentials: true,
-      });
+    if (isAuthenticated && !socketRef.current) {
+      const socketInstance = io(import.meta.env.VITE_SOCKET_URL, { withCredentials: true });
 
       socketInstance.on("connect", () => {
-        // console.log("Socket connected:", socketInstance.id);
-        // Register user with their ID
-        socketInstance.emit("user-connected", user._id);
+        console.log("Socket connected:", socketInstance.id);
       });
 
       socketInstance.on("disconnect", () => {
-        // console.log("Socket disconnected");
+        console.log("Socket disconnected");
       });
 
-      // Listen for new notifications
-      socketInstance.on("new-notification", (notification) => {
-        // console.log("new notification received:", notification);
-        setNotifications((prev) => [notification, ...prev]);
-        setUnreadCount((prev) => prev + 1);
-
-        // Show browser notification if permission granted
-        if (Notification.permission === "granted") {
-          new Notification("New Notification", {
-            body: getNotificationMessage(notification),
-            icon: notification.sender?.profilePicture || "/logo.png",
-          });
-        }
-      });
-
+      socketRef.current = socketInstance;
       setSocket(socketInstance);
-
-      return () => {
-        socketInstance.disconnect();
-      };
     }
-  }, [isAuthenticated, user]);
+
+    return () => {};
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    if (socket && user?._id) {
+      socket.emit("user-connected", user._id);
+    }
+  }, [socket, user?._id]);
 
   const getNotificationMessage = (notification) => {
     switch (notification.type) {

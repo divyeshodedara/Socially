@@ -57,10 +57,7 @@ const AuthProvider = ({ children }) => {
       }
 
       // Check if error is due to unverified email
-      if (
-        error.response?.status === 401 &&
-        message.includes("Email not verified")
-      ) {
+      if (error.response?.status === 401 && message.includes("Email not verified")) {
         return {
           success: false,
           error: message,

@@ -5,7 +5,7 @@ const DarkModeToggle = () => {
   const { isDarkMode, toggleTheme } = useTheme();
 
   const handleClick = () => {
-    console.log("Toggle clicked! Current mode:", isDarkMode ? "dark" : "light");
+    // console.log("Toggle clicked! Current mode:", isDarkMode ? "dark" : "light");
     toggleTheme();
   };
 

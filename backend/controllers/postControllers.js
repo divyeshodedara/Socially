@@ -4,6 +4,7 @@ import sharp from "sharp";
 import { cloudinary, uploadToCloudinary } from "../utils/cloudinary.js";
 import Post from "../models/post.model.js";
 import User from "../models/user.model.js";
+import mongoose from "mongoose";
 import Comment from "../models/comment.model.js";
 import { createNotification } from "./notificationController.js";
 import {
@@ -285,6 +286,7 @@ const addComment = catchAsync(async (req, res, next) => {
 
 const getPostComments = catchAsync(async (req, res, next) => {
   const postId = req.params.postId;
+  console.log(postId);
 
   const comments = await Comment.find({ post: postId })
     .populate({

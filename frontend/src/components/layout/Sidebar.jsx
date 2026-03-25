@@ -57,41 +57,43 @@ const Sidebar = () => {
   };
 
   const handleFollow = async (userId) => {
+    setFollowingUsers((prev) => new Set([...prev, userId]));
+
+    updateUser({
+      ...user,
+      following: [...(user.following || []), userId],
+    });
+
     try {
-      const response = await api.post(`/users/follow/${userId}`);
-      if (response.data.status === "success") {
-        toast.success(response.data.message || "User followed successfully");
-        setFollowingUsers((prev) => new Set([...prev, userId]));
-        updateUser({
-          ...user,
-          following: [...(user.following || []), userId],
-        });
-      }
+      await api.post(`/users/follow/${userId}`);
     } catch (error) {
-      const message = error.response?.data?.message || "Failed to follow user";
-      toast.error(message);
+      setFollowingUsers((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(userId);
+        return newSet;
+      });
+
+      toast.error("Failed to follow user");
     }
   };
 
   const handleUnfollow = async (userId) => {
-    try {
-      const response = await api.post(`/users/unfollow/${userId}`);
-      if (response.data.status === "success") {
-        toast.success(response.data.message || "User unfollowed successfully");
-        setFollowingUsers((prev) => {
-          const newSet = new Set(prev);
-          newSet.delete(userId);
-          return newSet;
-        });
+    setFollowingUsers((prev) => {
+      const newSet = new Set(prev);
+      newSet.delete(userId);
+      return newSet;
+    });
 
-        updateUser({
-          ...user,
-          following: (user.following || []).filter((id) => id !== userId),
-        });
-      }
+    updateUser({
+      ...user,
+      following: (user.following || []).filter((id) => id !== userId),
+    });
+
+    try {
+      await api.post(`/users/unfollow/${userId}`);
     } catch (error) {
-      const message = error.response?.data?.message || "Failed to unfollow user";
-      toast.error(message);
+      setFollowingUsers((prev) => new Set([...prev, userId]));
+      toast.error("Failed to unfollow user");
     }
   };
 

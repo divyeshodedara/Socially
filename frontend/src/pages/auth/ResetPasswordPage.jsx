@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import api from "../../api/api";
 import toast from "react-hot-toast";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const ResetPasswordPage = () => {
   const location = useLocation();
@@ -13,6 +14,8 @@ const ResetPasswordPage = () => {
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const navigate = useNavigate();
 
@@ -135,7 +138,7 @@ const ResetPasswordPage = () => {
           </div>
 
           {/* New Password Field */}
-          <div>
+          {/* <div>
             <label htmlFor="password" className="block text-sm font-medium text-mono-black dark:text-mono-white mb-2">
               New Password
             </label>
@@ -149,10 +152,37 @@ const ResetPasswordPage = () => {
               placeholder="Enter new password (min 8 characters)"
               disabled={loading}
             />
+          </div> */}
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-mono-black dark:text-mono-white mb-2">
+              New Password
+            </label>
+
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                className="w-full px-4 py-2.5 pr-12 bg-mono-white dark:bg-mono-900 border-2 border-mono-300 dark:border-mono-700 rounded-lg text-mono-black dark:text-mono-white placeholder-mono-500 focus:ring-2 focus:ring-mono-black dark:focus:ring-mono-white focus:border-mono-black dark:focus:border-mono-white transition-all duration-200"
+                placeholder="Enter new password"
+                disabled={loading}
+              />
+
+              {/* Show/Hide Button */}
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-3 flex items-center text-mono-600 dark:text-mono-400"
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
           </div>
 
           {/* Confirm New Password Field */}
-          <div>
+          {/* <div>
             <label
               htmlFor="passwordConfirm"
               className="block text-sm font-medium text-mono-black dark:text-mono-white mb-2"
@@ -169,6 +199,33 @@ const ResetPasswordPage = () => {
               placeholder="Confirm new password"
               disabled={loading}
             />
+          </div> */}
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-mono-black dark:text-mono-white mb-2">
+              Confirm New Password
+            </label>
+
+            <div className="relative">
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                id="passwordConfirm"
+                name="passwordConfirm"
+                value={formData.passwordConfirm}
+                onChange={handleChange}
+                className="w-full px-4 py-2.5 pr-12 bg-mono-white dark:bg-mono-900 border-2 border-mono-300 dark:border-mono-700 rounded-lg text-mono-black dark:text-mono-white placeholder-mono-500 focus:ring-2 focus:ring-mono-black dark:focus:ring-mono-white focus:border-mono-black dark:focus:border-mono-white transition-all duration-200"
+                placeholder="Confirm new password"
+                disabled={loading}
+              />
+
+              {/* Show/Hide Button */}
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute inset-y-0 right-3 flex items-center text-mono-600 dark:text-mono-400"
+              >
+                {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
           </div>
 
           {/* Submit Button */}

@@ -30,32 +30,19 @@ const postSchema = new mongoose.Schema(
     ],
     comments: [
       {
-        type : mongoose.Schema.Types.ObjectId,
-        ref : "Comment"
-        // user: {
-        //   type: mongoose.Schema.Types.ObjectId,
-        //   ref: "User",
-        //   required: true,
-        // },
-        // text: {
-        //   type: String,
-        //   required: true,
-        // },
-        // createdAt: {
-        //   type: Date,
-        //   default: Date.now,
-        // },
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Comment",
       },
     ],
-    createdAt : {
-        type : Date,
-        default : Date.now
-    }
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-postSchema.index({user : 1 , createdAt : -1});
+postSchema.index({ user: 1, createdAt: -1 });
 
 const Post = mongoose.model("Post", postSchema);
 
