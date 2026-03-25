@@ -1,25 +1,56 @@
-# 📱 Social Media Platform
+<div align="center">
 
-Full-stack MERN social app with authentication, posts, comments, follows, notifications, and real-time messaging using Socket.IO.
+# Socially
 
-![Project Status](https://img.shields.io/badge/status-active-success.svg)
-![Node Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)
-![License](https://img.shields.io/badge/license-ISC-blue.svg)
+**A full-stack social media platform built with the MERN stack**
 
-## ✨ Current Features
+[![Node Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org)
+[![License](https://img.shields.io/badge/license-ISC-blue.svg)](LICENSE)
+[![Status](https://img.shields.io/badge/status-active-success.svg)]()
 
-- Email OTP-based signup verification
-- JWT auth using HTTP-only cookies
-- Forgot/reset password via OTP email
-- Profile edit (bio + profile picture upload)
-- Follow/unfollow users
-- Suggested users and user search
-- Create posts with image upload (Cloudinary)
-- Like/unlike, comment, save/unsave posts
-- Real-time notifications (like/comment/follow)
-- Real-time 1:1 messaging (text + image)
-- Typing indicators and message seen status
-- Dark mode + responsive UI
+[Features](#-features) · [Tech Stack](#-tech-stack) · [Getting Started](#-getting-started) · [API Reference](#-api-reference) · [Socket Events](#-socketio-events) · [Environment Variables](#-environment-variables)
+
+</div>
+
+---
+
+## ✨ Features
+
+**Authentication**
+
+- Email + password signup with OTP email verification
+- JWT authentication via HttpOnly cookies
+- Forgot / reset password via OTP email
+- Disposable email detection
+
+**Social**
+
+- Follow / unfollow users
+- Suggested users list & user search
+- User profiles with bio and profile picture
+
+**Posts**
+
+- Create posts with image upload (optimized via Sharp → Cloudinary)
+- Infinite-scroll feed
+- Like / unlike posts (with optimistic UI)
+- Comment on posts
+- Save / unsave posts
+- Delete own posts
+
+**Real-Time** _(Socket.IO)_
+
+- Live feed updates — new posts appear instantly for followers
+- Real-time notifications (likes, comments, follows)
+- 1-on-1 messaging with image support
+- Typing indicators & message seen/delivered status
+
+**UX**
+
+- Dark mode (system preference + manual toggle, persisted)
+- Fully responsive — dedicated bottom nav on mobile
+- Skeleton loaders & toast notifications
+- Rate-limit-aware error pages
 
 ---
 
@@ -27,183 +58,205 @@ Full-stack MERN social app with authentication, posts, comments, follows, notifi
 
 ### Frontend
 
-- React 18 + Vite
-- React Router v6
-- Tailwind CSS
-- TanStack Query
-- Axios
-- Socket.IO Client
-- Framer Motion
+|                  |                   |
+| ---------------- | ----------------- |
+| **Framework**    | React 18 + Vite   |
+| **Routing**      | React Router v6   |
+| **Server State** | TanStack Query v5 |
+| **HTTP**         | Axios             |
+| **Real-time**    | Socket.IO Client  |
+| **Styling**      | Tailwind CSS      |
+| **Animations**   | Framer Motion     |
 
 ### Backend
 
-- Node.js + Express 5
-- MongoDB + Mongoose
-- JWT + bcryptjs
-- Multer + Sharp + Cloudinary
-- Nodemailer + EJS templates
-- Socket.IO
-- Security middleware: `helmet`, `express-mongo-sanitize`, `express-rate-limit`
+|                  |                                                    |
+| ---------------- | -------------------------------------------------- |
+| **Runtime**      | Node.js ≥ 18 (ES Modules)                          |
+| **Framework**    | Express 5                                          |
+| **Database**     | MongoDB + Mongoose                                 |
+| **Cache / OTP**  | Redis (ioredis)                                    |
+| **Auth**         | JWT + bcryptjs                                     |
+| **Real-time**    | Socket.IO                                          |
+| **File Uploads** | Multer + Sharp + Cloudinary                        |
+| **Email**        | Nodemailer + EJS templates                         |
+| **Security**     | Helmet, express-mongo-sanitize, express-rate-limit |
 
 ---
 
 ## 🚀 Getting Started
 
-## 1) Prerequisites
+### Prerequisites
 
 - Node.js 18+
-- MongoDB (local or Atlas)
-- Cloudinary account
-- Gmail app password (or SMTP credentials)
+- MongoDB (local or [Atlas](https://www.mongodb.com/atlas))
+- Redis (local or [Upstash](https://upstash.com))
+- [Cloudinary](https://cloudinary.com) account
+- Gmail app password (or any SMTP credentials)
 
-## 2) Install Dependencies
+### 1. Clone the repository
 
 ```bash
-# from project root
+git clone https://github.com/your-username/socially.git
+cd socially
+```
+
+### 2. Install dependencies
+
+```bash
+# Backend
 cd backend && npm install
+
+# Frontend
 cd ../frontend && npm install
 ```
 
-## 3) Environment Setup
+### 3. Configure environment variables
 
-### Backend
-
-Copy `backend/.env.example` to `backend/.env` and fill values:
+**Backend** — copy and fill in `backend/.env`:
 
 ```env
 NODE_ENV=development
 PORT=8000
+
+# MongoDB
 DB_URL=mongodb://localhost:27017/social-media
 
+# JWT
 JWT_SECRET=your-super-secret-jwt-key
 JWT_EXPIRES_IN=1d
+COOKIE_EXPIRES_IN=86400000   # 1 day in ms
 
+# Email (Gmail example — use App Password)
 EMAIL_USERNAME=your-email@gmail.com
-EMAIL_PASSWORD=your-app-password
+EMAIL_PASSWORD=your-app-specific-password
 
-CLOUDINARY_CLOUD_NAME=your-cloudinary-cloud-name
-CLOUDINARY_API_KEY=your-cloudinary-api-key
-CLOUDINARY_API_SECRET=your-cloudinary-api-secret
+# Cloudinary
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-api-key
+CLOUDINARY_API_SECRET=your-api-secret
 
+# CORS
 FRONTEND_URL=http://localhost:5173
+
+# Redis
+REDIS_HOST=127.0.0.1
+REDIS_PORT=6379
 ```
 
-### Frontend
-
-Copy `frontend/.env.example` to `frontend/.env`:
+**Frontend** — copy and fill in `frontend/.env`:
 
 ```env
-VITE_API_URL=http://localhost:3000/api/v1
-VITE_SOCKET_URL=http://localhost:3000
+VITE_API_URL=http://localhost:8000/api/v1
+VITE_SOCKET_URL=http://localhost:8000
 ```
 
-> Note: API base URL is currently hardcoded in `frontend/src/api/api.js` as `http://localhost:3000/api/v1`.
-
-## 4) Run the App
-
-### Backend
+### 4. Run the application
 
 ```bash
+# Terminal 1 — Backend
 cd backend
 npm run dev
-```
 
-### Frontend
-
-```bash
+# Terminal 2 — Frontend
 cd frontend
 npm run dev
 ```
 
-Default local URLs:
-
-- Frontend: `http://localhost:5173`
-- Backend API (if `PORT=3000`): `http://localhost:3000/api/v1`
-- Health check: `http://localhost:3000/check`
+| Service      | URL                          |
+| ------------ | ---------------------------- |
+| Frontend     | http://localhost:5173        |
+| Backend API  | http://localhost:8000/api/v1 |
+| Health check | http://localhost:8000/check  |
 
 ---
 
 ## 📚 API Reference
 
-Base: `/api/v1`
+Base path: `/api/v1`
 
-### Auth Routes (`/auth`)
+### 🔐 Auth — `/auth`
 
-| Method | Endpoint                | Auth | Description             |
-| ------ | ----------------------- | ---- | ----------------------- |
-| POST   | `/auth/signup`          | ❌   | Register new user       |
-| POST   | `/auth/login`           | ❌   | Login                   |
-| POST   | `/auth/verify`          | ❌   | Verify email OTP        |
-| POST   | `/auth/resend-otp`      | ❌   | Resend verification OTP |
-| POST   | `/auth/forget-password` | ❌   | Request reset OTP       |
-| POST   | `/auth/reset-password`  | ❌   | Reset password with OTP |
-| POST   | `/auth/logout`          | ✅   | Logout user             |
+| Method | Endpoint                | Auth | Description                |
+| ------ | ----------------------- | ---- | -------------------------- |
+| POST   | `/auth/signup`          | ❌   | Register new user          |
+| POST   | `/auth/login`           | ❌   | Login, returns JWT cookie  |
+| POST   | `/auth/verify`          | ❌   | Verify email with OTP      |
+| POST   | `/auth/resend-otp`      | ❌   | Resend verification OTP    |
+| POST   | `/auth/forget-password` | ❌   | Request password reset OTP |
+| POST   | `/auth/reset-password`  | ❌   | Reset password with OTP    |
+| POST   | `/auth/logout`          | ✅   | Clear JWT cookie           |
 
-### User Routes (`/users`) - protected
+### 👤 Users — `/users`
 
-| Method | Endpoint                 | Description                  |
-| ------ | ------------------------ | ---------------------------- |
-| GET    | `/users/me`              | Current logged-in user       |
-| GET    | `/users/search`          | Search users (`query` param) |
-| GET    | `/users/profile/:id`     | Get profile by user id       |
-| GET    | `/users/suggested-users` | Suggested users              |
-| POST   | `/users/follow/:id`      | Follow user                  |
-| POST   | `/users/unfollow/:id`    | Unfollow user                |
-| POST   | `/users/edit-profile`    | Edit profile (multipart)     |
+| Method | Endpoint                 | Description                              |
+| ------ | ------------------------ | ---------------------------------------- |
+| GET    | `/users/me`              | Current authenticated user               |
+| GET    | `/users/profile/:id`     | Get user profile by ID                   |
+| GET    | `/users/suggested-users` | List of suggested users                  |
+| GET    | `/users/search?query=`   | Search users by username or bio          |
+| POST   | `/users/follow/:id`      | Follow a user                            |
+| POST   | `/users/unfollow/:id`    | Unfollow a user                          |
+| POST   | `/users/edit-profile`    | Update bio & profile picture (multipart) |
 
-### Post Routes (`/posts`) - protected
+### 📝 Posts — `/posts`
 
-| Method | Endpoint                      | Description                    |
-| ------ | ----------------------------- | ------------------------------ |
-| GET    | `/posts/all-posts`            | Feed (supports `page`,`limit`) |
-| GET    | `/posts/user-posts/:id`       | Posts by user                  |
-| GET    | `/posts/:postId/comments`     | Post comments                  |
-| POST   | `/posts/create-post`          | Create post (multipart)        |
-| POST   | `/posts/save/:postId`         | Save/unsave post               |
-| POST   | `/posts/like-dislike/:postId` | Like/unlike post               |
-| POST   | `/posts/comment/:postId`      | Add comment                    |
-| DELETE | `/posts/delete/:postId`       | Delete own post                |
+| Method | Endpoint                      | Description                        |
+| ------ | ----------------------------- | ---------------------------------- |
+| GET    | `/posts/all-posts`            | Paginated feed (`?page=&limit=`)   |
+| GET    | `/posts/user-posts/:id`       | All posts by a user                |
+| GET    | `/posts/:postId/comments`     | Comments for a post                |
+| POST   | `/posts/create-post`          | Create post with image (multipart) |
+| POST   | `/posts/like-dislike/:postId` | Toggle like                        |
+| POST   | `/posts/comment/:postId`      | Add comment                        |
+| POST   | `/posts/save/:postId`         | Toggle save                        |
+| DELETE | `/posts/delete/:postId`       | Delete own post                    |
 
-### Message Routes (`/messages`) - protected
+### 💬 Messages — `/messages`
 
-| Method | Endpoint                  | Description                |
-| ------ | ------------------------- | -------------------------- |
-| GET    | `/messages/conversations` | List conversations         |
-| GET    | `/messages/:userId`       | Chat with specific user    |
-| GET    | `/messages/unread/count`  | Unread message count       |
-| POST   | `/messages/send`          | Send message (multipart)   |
-| PATCH  | `/messages/:userId/seen`  | Mark chat messages as seen |
+| Method | Endpoint                  | Description                          |
+| ------ | ------------------------- | ------------------------------------ |
+| GET    | `/messages/conversations` | List all conversations               |
+| GET    | `/messages/:userId`       | Message history with a user          |
+| GET    | `/messages/unread/count`  | Unread message count                 |
+| POST   | `/messages/send`          | Send message (text + optional image) |
+| PATCH  | `/messages/:userId/seen`  | Mark messages as seen                |
 
-### Notification Routes (`/notifications`) - protected
+### 🔔 Notifications — `/notifications`
 
-| Method | Endpoint                       | Description                |
-| ------ | ------------------------------ | -------------------------- |
-| GET    | `/notifications`               | List notifications         |
-| GET    | `/notifications/unread-count`  | Unread notification count  |
-| PATCH  | `/notifications/mark-all-read` | Mark all as read           |
-| PATCH  | `/notifications/:id/read`      | Mark one notification read |
-| DELETE | `/notifications/:id`           | Delete notification        |
+| Method | Endpoint                       | Description                    |
+| ------ | ------------------------------ | ------------------------------ |
+| GET    | `/notifications`               | List notifications (latest 20) |
+| GET    | `/notifications/unread-count`  | Unread count                   |
+| PATCH  | `/notifications/mark-all-read` | Mark all as read               |
+| PATCH  | `/notifications/:id/read`      | Mark one as read               |
+| DELETE | `/notifications/:id`           | Delete a notification          |
 
 ---
 
 ## 🔌 Socket.IO Events
 
-### Client emits
+### Client → Server
 
-- `user-connected` (userId)
-- `typing` ({ senderId, receiverId })
-- `stopTyping` ({ senderId, receiverId })
+| Event            | Payload                    | Description                |
+| ---------------- | -------------------------- | -------------------------- |
+| `user-connected` | `userId`                   | Register socket on connect |
+| `typing`         | `{ senderId, receiverId }` | User is typing             |
+| `stopTyping`     | `{ senderId, receiverId }` | User stopped typing        |
 
-### Server emits
+### Server → Client
 
-- `new-notification`
-- `newPost`
-- `message` (payload includes `newMessage` / `messagesSeen` types)
-- `userTyping`
-- `userStoppedTyping`
-- `postLikeUpdated`
-- `newComment`
-- `postSavedUpdated`
+| Event               | Payload                                         | Description                          |
+| ------------------- | ----------------------------------------------- | ------------------------------------ |
+| `new-notification`  | notification object                             | Like / comment / follow notification |
+| `newPost`           | post object                                     | New post from a followed user        |
+| `postDeleted`       | `{ postId }`                                    | Post was deleted                     |
+| `postLikeUpdated`   | `{ postId, likesCount, userId }`                | Like count changed                   |
+| `newComment`        | `{ postId, comment, commentsCount }`            | New comment on a post                |
+| `postSavedUpdated`  | `{ postId, isSaved, post }`                     | Post saved/unsaved                   |
+| `message`           | `{ type: 'newMessage' \| 'messagesSeen', ... }` | New message or seen receipt          |
+| `userTyping`        | `{ userId }`                                    | Remote user is typing                |
+| `userStoppedTyping` | `{ userId }`                                    | Remote user stopped typing           |
 
 ---
 
@@ -211,75 +264,74 @@ Base: `/api/v1`
 
 ### Backend (`backend/.env`)
 
-Required:
-
-- `NODE_ENV`
-- `PORT`
-- `DB_URL`
-- `JWT_SECRET`
-- `JWT_EXPIRES_IN`
-- `EMAIL_USERNAME`
-- `EMAIL_PASSWORD`
-- `CLOUDINARY_CLOUD_NAME`
-- `CLOUDINARY_API_KEY`
-- `CLOUDINARY_API_SECRET`
-- `FRONTEND_URL`
+| Variable                | Required | Description                       |
+| ----------------------- | -------- | --------------------------------- |
+| `NODE_ENV`              | ✅       | `development` or `production`     |
+| `PORT`                  | ✅       | Server port (default: 8000)       |
+| `DB_URL`                | ✅       | MongoDB connection string         |
+| `JWT_SECRET`            | ✅       | Secret key for JWT signing        |
+| `JWT_EXPIRES_IN`        | ✅       | Token expiry (e.g. `1d`)          |
+| `COOKIE_EXPIRES_IN`     | ✅       | Cookie expiry in milliseconds     |
+| `EMAIL_USERNAME`        | ✅       | SMTP email address                |
+| `EMAIL_PASSWORD`        | ✅       | SMTP password / app password      |
+| `CLOUDINARY_CLOUD_NAME` | ✅       | Cloudinary cloud name             |
+| `CLOUDINARY_API_KEY`    | ✅       | Cloudinary API key                |
+| `CLOUDINARY_API_SECRET` | ✅       | Cloudinary API secret             |
+| `FRONTEND_URL`          | ✅       | Frontend origin for CORS          |
+| `REDIS_HOST`            | ✅       | Redis host (default: `127.0.0.1`) |
+| `REDIS_PORT`            | ✅       | Redis port (default: `6379`)      |
 
 ### Frontend (`frontend/.env`)
 
-- `VITE_API_URL` (currently not used by `api.js`)
-- `VITE_SOCKET_URL`
+| Variable          | Required | Description           |
+| ----------------- | -------- | --------------------- |
+| `VITE_API_URL`    | ✅       | Backend API base URL  |
+| `VITE_SOCKET_URL` | ✅       | Backend Socket.IO URL |
 
 ---
 
-## 📁 Project Structure
+## 📂 Project Structure
 
-```text
-social/
+```
+socially/
 ├── backend/
-│   ├── app.js
-│   ├── server.js
-│   ├── controllers/
-│   ├── middleware/
-│   ├── models/
-│   ├── routes/
-│   ├── utils/
-│   └── views/emails/
-├── frontend/
-│   ├── src/
-│   │   ├── api/
-│   │   ├── components/
-│   │   ├── context/
-│   │   ├── pages/
-│   │   ├── utils/
-│   │   ├── App.jsx
-│   │   └── main.jsx
-│   └── public/
-└── README.md
+│   ├── controllers/       # Business logic
+│   ├── models/            # Mongoose schemas
+│   ├── routes/            # Express routers
+│   ├── middleware/        # Auth, multer, rate limiter
+│   ├── utils/             # Socket.IO, Cloudinary, Redis, email, helpers
+│   ├── views/emails/      # EJS email templates
+│   ├── app.js             # Express setup
+│   └── server.js          # Entry point
+└── frontend/
+    └── src/
+        ├── api/           # Axios instance
+        ├── context/       # Auth, Socket, Theme contexts
+        ├── components/    # Reusable UI components
+        └── pages/         # Route-level page components
 ```
 
 ---
 
 ## 🧪 Testing
 
-No automated test suite is configured yet.
+No automated test suite is configured yet. Suggested tools:
 
-Suggested:
-
-- Backend: Jest + Supertest
-- Frontend: Vitest + React Testing Library
+- **Backend:** Jest + Supertest
+- **Frontend:** Vitest + React Testing Library
 
 ---
 
 ## 🤝 Contributing
 
-1. Fork the repo
-2. Create branch: `feature/your-feature-name`
-3. Commit and push
-4. Open a pull request
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/your-feature-name`
+3. Commit your changes: `git commit -m "feat: add your feature"`
+4. Push to the branch: `git push origin feature/your-feature-name`
+5. Open a Pull Request
 
 ---
 
 ## 📝 License
 
-ISC
+[ISC](LICENSE) © Divyesh Odedara
