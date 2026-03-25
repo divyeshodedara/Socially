@@ -1,10 +1,10 @@
-# 🏗️ Socially — Architecture Documentation
+# Socially — Architecture Documentation
 
 This document describes the system architecture, tech stack, data flow, and design decisions behind the **Socially** full-stack social media platform.
 
 ---
 
-## 📐 High-Level Overview
+## High-Level Overview
 
 Socially follows a **decoupled full-stack architecture**: a React SPA on the frontend communicates with a Node.js/Express REST API on the backend. Real-time features (chat, notifications, live feed) are powered by Socket.IO running on the same backend server.
 
@@ -33,7 +33,7 @@ Socially follows a **decoupled full-stack architecture**: a React SPA on the fro
 
 ---
 
-## ⚙️ Tech Stack
+## Tech Stack
 
 ### Frontend
 
@@ -68,7 +68,7 @@ Socially follows a **decoupled full-stack architecture**: a React SPA on the fro
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 socially/
@@ -140,7 +140,7 @@ socially/
 
 ---
 
-## 🔐 Authentication Flow
+## Authentication Flow
 
 ```
 User fills Sign Up form
@@ -177,7 +177,7 @@ Subsequent requests
 
 ---
 
-## 🗃️ Database Schema
+## Database Schema
 
 ### User
 
@@ -230,7 +230,7 @@ Index: `{ recipient: 1, read: 1, createdAt: -1 }`
 
 ---
 
-## 📡 Real-Time Architecture (Socket.IO)
+## Real-Time Architecture (Socket.IO)
 
 The Socket.IO server runs on the **same HTTP server** as Express. User socket connections are tracked in an in-memory `Map<userId, socketId>`.
 
@@ -262,7 +262,7 @@ Client disconnects → iterate userSockets → delete entry
 
 ---
 
-## 🖼️ Media Handling Pipeline
+## Media Handling Pipeline
 
 ```
 Client selects image
@@ -287,7 +287,7 @@ On deletion, `cloudinary.uploader.destroy(public_id)` is called to clean up stor
 
 ---
 
-## ⚡ Caching Strategy (Redis)
+## Caching Strategy (Redis)
 
 | Key Pattern                | TTL    | Contents                 |
 | -------------------------- | ------ | ------------------------ |
@@ -299,7 +299,7 @@ The `user:{id}` cache is invalidated on profile update and on logout.
 
 ---
 
-## 🛡️ Security
+## Security
 
 | Measure          | Implementation                                           |
 | ---------------- | -------------------------------------------------------- |
@@ -327,7 +327,7 @@ The `user:{id}` cache is invalidated on profile update and on logout.
 
 ---
 
-## 🔄 Frontend State Management
+## Frontend State Management
 
 | State Type                               | Solution                                      |
 | ---------------------------------------- | --------------------------------------------- |
@@ -343,6 +343,6 @@ Socket.IO events drive **cache mutations** directly (e.g., `queryClient.setQuery
 
 ---
 
-## 🚦 API Rate Limit Headers
+## API Rate Limit Headers
 
 Responses include standard `RateLimit-*` headers (`standardHeaders: true`, `legacyHeaders: false`) so clients can surface limit info if needed.

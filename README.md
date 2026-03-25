@@ -5,8 +5,7 @@
 **A full-stack social media platform built with the MERN stack**
 
 [![Node Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org)
-[![License](https://img.shields.io/badge/license-ISC-blue.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/status-active-success.svg)]()
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)[![Status](https://img.shields.io/badge/status-active-success.svg)]()
 
 [Features](#-features) · [Tech Stack](#-tech-stack) · [Getting Started](#-getting-started) · [API Reference](#-api-reference) · [Socket Events](#-socketio-events) · [Environment Variables](#-environment-variables)
 
@@ -14,7 +13,7 @@
 
 ---
 
-## ✨ Features
+## Features
 
 **Authentication**
 
@@ -54,7 +53,7 @@
 
 ---
 
-## 🛠 Tech Stack
+## Tech Stack
 
 ### Frontend
 
@@ -84,7 +83,7 @@
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -171,23 +170,23 @@ npm run dev
 
 ---
 
-## 📚 API Reference
+## API Reference
 
 Base path: `/api/v1`
 
-### 🔐 Auth — `/auth`
+### Auth — `/auth`
 
-| Method | Endpoint                | Auth | Description                |
-| ------ | ----------------------- | ---- | -------------------------- |
-| POST   | `/auth/signup`          | ❌   | Register new user          |
-| POST   | `/auth/login`           | ❌   | Login, returns JWT cookie  |
-| POST   | `/auth/verify`          | ❌   | Verify email with OTP      |
-| POST   | `/auth/resend-otp`      | ❌   | Resend verification OTP    |
-| POST   | `/auth/forget-password` | ❌   | Request password reset OTP |
-| POST   | `/auth/reset-password`  | ❌   | Reset password with OTP    |
-| POST   | `/auth/logout`          | ✅   | Clear JWT cookie           |
+| Method | Endpoint                | Auth                                                    | Description                |
+| ------ | ----------------------- | ------------------------------------------------------- | -------------------------- |
+| POST   | `/auth/signup`          | ![Yes](https://img.shields.io/badge/Required-No-red)    | Register new user          |
+| POST   | `/auth/login`           | ![Yes](https://img.shields.io/badge/Required-No-red)    | Login, returns JWT cookie  |
+| POST   | `/auth/verify`          | ![Yes](https://img.shields.io/badge/Required-No-red)    | Verify email with OTP      |
+| POST   | `/auth/resend-otp`      | ![Yes](https://img.shields.io/badge/Required-No-red)    | Resend verification OTP    |
+| POST   | `/auth/forget-password` | ![Yes](https://img.shields.io/badge/Required-No-red)    | Request password reset OTP |
+| POST   | `/auth/reset-password`  | ![Yes](https://img.shields.io/badge/Required-No-red)    | Reset password with OTP    |
+| POST   | `/auth/logout`          | ![Yes](https://img.shields.io/badge/Required-Yes-green) | Clear JWT cookie           |
 
-### 👤 Users — `/users`
+### Users — `/users`
 
 | Method | Endpoint                 | Description                              |
 | ------ | ------------------------ | ---------------------------------------- |
@@ -199,7 +198,7 @@ Base path: `/api/v1`
 | POST   | `/users/unfollow/:id`    | Unfollow a user                          |
 | POST   | `/users/edit-profile`    | Update bio & profile picture (multipart) |
 
-### 📝 Posts — `/posts`
+### Posts — `/posts`
 
 | Method | Endpoint                      | Description                        |
 | ------ | ----------------------------- | ---------------------------------- |
@@ -212,7 +211,7 @@ Base path: `/api/v1`
 | POST   | `/posts/save/:postId`         | Toggle save                        |
 | DELETE | `/posts/delete/:postId`       | Delete own post                    |
 
-### 💬 Messages — `/messages`
+### Messages — `/messages`
 
 | Method | Endpoint                  | Description                          |
 | ------ | ------------------------- | ------------------------------------ |
@@ -222,7 +221,7 @@ Base path: `/api/v1`
 | POST   | `/messages/send`          | Send message (text + optional image) |
 | PATCH  | `/messages/:userId/seen`  | Mark messages as seen                |
 
-### 🔔 Notifications — `/notifications`
+### Notifications — `/notifications`
 
 | Method | Endpoint                       | Description                    |
 | ------ | ------------------------------ | ------------------------------ |
@@ -234,7 +233,7 @@ Base path: `/api/v1`
 
 ---
 
-## 🔌 Socket.IO Events
+## Socket.IO Events
 
 ### Client → Server
 
@@ -260,37 +259,37 @@ Base path: `/api/v1`
 
 ---
 
-## 🔐 Environment Variables
+## Environment Variables
 
 ### Backend (`backend/.env`)
 
-| Variable                | Required | Description                       |
-| ----------------------- | -------- | --------------------------------- |
-| `NODE_ENV`              | ✅       | `development` or `production`     |
-| `PORT`                  | ✅       | Server port (default: 8000)       |
-| `DB_URL`                | ✅       | MongoDB connection string         |
-| `JWT_SECRET`            | ✅       | Secret key for JWT signing        |
-| `JWT_EXPIRES_IN`        | ✅       | Token expiry (e.g. `1d`)          |
-| `COOKIE_EXPIRES_IN`     | ✅       | Cookie expiry in milliseconds     |
-| `EMAIL_USERNAME`        | ✅       | SMTP email address                |
-| `EMAIL_PASSWORD`        | ✅       | SMTP password / app password      |
-| `CLOUDINARY_CLOUD_NAME` | ✅       | Cloudinary cloud name             |
-| `CLOUDINARY_API_KEY`    | ✅       | Cloudinary API key                |
-| `CLOUDINARY_API_SECRET` | ✅       | Cloudinary API secret             |
-| `FRONTEND_URL`          | ✅       | Frontend origin for CORS          |
-| `REDIS_HOST`            | ✅       | Redis host (default: `127.0.0.1`) |
-| `REDIS_PORT`            | ✅       | Redis port (default: `6379`)      |
+| Variable                | Required                                                | Description                       |
+| ----------------------- | ------------------------------------------------------- | --------------------------------- |
+| `NODE_ENV`              | ![Yes](https://img.shields.io/badge/Required-Yes-green) | `development` or `production`     |
+| `PORT`                  | ![Yes](https://img.shields.io/badge/Required-Yes-green) | Server port (default: 8000)       |
+| `DB_URL`                | ![Yes](https://img.shields.io/badge/Required-Yes-green) | MongoDB connection string         |
+| `JWT_SECRET`            | ![Yes](https://img.shields.io/badge/Required-Yes-green) | Secret key for JWT signing        |
+| `JWT_EXPIRES_IN`        | ![Yes](https://img.shields.io/badge/Required-Yes-green) | Token expiry (e.g. `1d`)          |
+| `COOKIE_EXPIRES_IN`     | ![Yes](https://img.shields.io/badge/Required-Yes-green) | Cookie expiry in milliseconds     |
+| `EMAIL_USERNAME`        | ![Yes](https://img.shields.io/badge/Required-Yes-green) | SMTP email address                |
+| `EMAIL_PASSWORD`        | ![Yes](https://img.shields.io/badge/Required-Yes-green) | SMTP password / app password      |
+| `CLOUDINARY_CLOUD_NAME` | ![Yes](https://img.shields.io/badge/Required-Yes-green) | Cloudinary cloud name             |
+| `CLOUDINARY_API_KEY`    | ![Yes](https://img.shields.io/badge/Required-Yes-green) | Cloudinary API key                |
+| `CLOUDINARY_API_SECRET` | ![Yes](https://img.shields.io/badge/Required-Yes-green) | Cloudinary API secret             |
+| `FRONTEND_URL`          | ![Yes](https://img.shields.io/badge/Required-Yes-green) | Frontend origin for CORS          |
+| `REDIS_HOST`            | ![Yes](https://img.shields.io/badge/Required-Yes-green) | Redis host (default: `127.0.0.1`) |
+| `REDIS_PORT`            | ![Yes](https://img.shields.io/badge/Required-Yes-green) | Redis port (default: `6379`)      |
 
 ### Frontend (`frontend/.env`)
 
-| Variable          | Required | Description           |
-| ----------------- | -------- | --------------------- |
-| `VITE_API_URL`    | ✅       | Backend API base URL  |
-| `VITE_SOCKET_URL` | ✅       | Backend Socket.IO URL |
+| Variable          | Required                                                | Description           |
+| ----------------- | ------------------------------------------------------- | --------------------- |
+| `VITE_API_URL`    | ![Yes](https://img.shields.io/badge/Required-Yes-green) | Backend API base URL  |
+| `VITE_SOCKET_URL` | ![Yes](https://img.shields.io/badge/Required-Yes-green) | Backend Socket.IO URL |
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 socially/
@@ -313,25 +312,16 @@ socially/
 
 ---
 
-## 🧪 Testing
+<!-- ## License
 
-No automated test suite is configured yet. Suggested tools:
+[ISC](LICENSE) © Divyesh Odedara -->
 
-- **Backend:** Jest + Supertest
-- **Frontend:** Vitest + React Testing Library
+## License
 
----
+This project is licensed under the MIT License.
 
-## 🤝 Contributing
+Copyright (c) 2026 Divyesh Odedara
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/your-feature-name`
-3. Commit your changes: `git commit -m "feat: add your feature"`
-4. Push to the branch: `git push origin feature/your-feature-name`
-5. Open a Pull Request
+Permission is granted to use, copy, modify, and distribute this software freely.
 
----
-
-## 📝 License
-
-[ISC](LICENSE) © Divyesh Odedara
+See the [LICENSE](./LICENSE) file for more details.
