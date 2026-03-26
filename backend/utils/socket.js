@@ -4,9 +4,15 @@ let io;
 const userSockets = new Map(); // Map userId to socketId
 
 export const initializeSocket = (server) => {
-  io = new Server(server, {
+  // io = new Server(server, {
+  //   cors: {
+  //     origin: process.env.FRONTEND_URL,
+  //     credentials: true,
+  //   },
+  // });
+  const io = new Server(server, {
     cors: {
-      origin: process.env.FRONTEND_URL,
+      origin: [process.env.FRONTEND_URL, process.env.WORKER_URL],
       credentials: true,
     },
   });

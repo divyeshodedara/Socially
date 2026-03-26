@@ -7,14 +7,18 @@ const createRateLimiter = (windowMs, max, message = "Too many attempts. Please t
     max,
     standardHeaders: true,
     legacyHeaders: false,
-    keyGenerator: (req) => {
-      const ip = req.ip || req.socket.remoteAddress;
 
-      if (req.user?.id) {
-        return req.user._id;
+    keyGenerator: (req) => {
+      const cfIp = req.headers["cf-connecting-ip"];
+      const ip = cfIp || req.ip || req.socket.remoteAddress;
+
+      if (req.user?._id) {
+        return `user:${req.user._id}`;
       }
-      return ipKeyGenerator(ip);
+
+      return `ip:${ip}`;
     },
+
     handler: (req, res) => {
       res.status(429).json({
         status: "fail",
