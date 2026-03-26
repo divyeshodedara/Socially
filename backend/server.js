@@ -11,9 +11,6 @@ const startServer = async () => {
     await mongoose.connect(process.env.DB_URL);
     console.log("MongoDB connected successfully!");
 
-    redis.connect();
-    console.log("Redis connected");
-
     const server = app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
     });
