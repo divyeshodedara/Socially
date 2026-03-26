@@ -64,9 +64,9 @@ export const sendNotificationToUser = (userId, notification) => {
   const socketId = userSockets.get(userId.toString());
   if (socketId) {
     io.to(socketId).emit("new-notification", notification);
-    console.log(`Notification sent to user ${userId}`);
+    // console.log(`Notification sent to user ${userId}`);
   } else {
-    console.log(`User ${userId} is not connected`);
+    // console.log(`User ${userId} is not connected`);
   }
 };
 
@@ -75,9 +75,9 @@ export const sendNewPostToUser = (userId, post) => {
   const socketId = userSockets.get(userId.toString());
   if (socketId) {
     io.to(socketId).emit("newPost", post);
-    console.log(`New post sent to user ${userId}`);
+    // console.log(`New post sent to user ${userId}`);
   } else {
-    console.log(`User ${userId} is not connected`);
+    // console.log(`User ${userId} is not connected`);
   }
 };
 
@@ -85,9 +85,9 @@ export const sendPostDeletedToUser = (userId, postId) => {
   const socketId = userSockets.get(userId.toString());
   if (socketId) {
     io.to(socketId).emit("postDeleted", { postId });
-    console.log(`Post deleted update sent to user ${userId}`);
+    // console.log(`Post deleted update sent to user ${userId}`);
   } else {
-    console.log(`User ${userId} is not connected`);
+    // console.log(`User ${userId} is not connected`);
   }
 };
 
@@ -96,9 +96,9 @@ export const sendMessageToUser = (userId, data) => {
   const socketId = userSockets.get(userId.toString());
   if (socketId) {
     io.to(socketId).emit("message", data);
-    console.log(`Message sent to user ${userId}`);
+    // console.log(`Message sent to user ${userId}`);
   } else {
-    console.log(`User ${userId} is not connected`);
+    // console.log(`User ${userId} is not connected`);
   }
 };
 
@@ -106,7 +106,7 @@ export const sendMessageToUser = (userId, data) => {
 export const broadcastPostLikeUpdate = (postId, likesCount, userId) => {
   if (io) {
     io.emit("postLikeUpdated", { postId, likesCount, userId });
-    console.log(`Like update broadcasted for post ${postId}`);
+    // console.log(`Like update broadcasted for post ${postId}`);
   }
 };
 
@@ -114,7 +114,7 @@ export const broadcastPostLikeUpdate = (postId, likesCount, userId) => {
 export const broadcastNewComment = (postId, comment, commentsCount) => {
   if (io) {
     io.emit("newComment", { postId, comment, commentsCount });
-    console.log(`New comment broadcasted for post ${postId}`);
+    // console.log(`New comment broadcasted for post ${postId}`);
   }
 };
 
@@ -123,9 +123,9 @@ export const sendSavedPostUpdate = (userId, postId, isSaved, post = null) => {
   const socketId = userSockets.get(userId.toString());
   if (socketId) {
     io.to(socketId).emit("postSavedUpdated", { postId, isSaved, post });
-    console.log(`Saved post update sent to user ${userId}`);
+    // console.log(`Saved post update sent to user ${userId}`);
   } else {
-    console.log(`User ${userId} is not connected`);
+    // console.log(`User ${userId} is not connected`);
   }
 };
 

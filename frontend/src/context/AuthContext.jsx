@@ -75,8 +75,6 @@ const AuthProvider = ({ children }) => {
     try {
       const response = await api.post("/auth/signup", userData);
 
-      console.log(userData);
-
       if (response.data.status === "success") {
         toast.success(response.data.message || "Signup successful!");
         return { success: true, email: userData.email };

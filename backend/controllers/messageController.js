@@ -11,9 +11,6 @@ export const sendMessage = catchAsync(async (req, res, next) => {
   const { receiverId, message } = req.body;
   const senderId = req.user._id;
   const image = req.file;
-  console.log(message);
-  console.log(senderId);
-  console.log(receiverId);
   if (!receiverId) {
     return next(new AppError("Receiver ID is required", 400));
   }

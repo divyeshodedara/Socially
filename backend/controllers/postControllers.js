@@ -286,7 +286,6 @@ const addComment = catchAsync(async (req, res, next) => {
 
 const getPostComments = catchAsync(async (req, res, next) => {
   const postId = req.params.postId;
-  console.log(postId);
 
   const comments = await Comment.find({ post: postId })
     .populate({
