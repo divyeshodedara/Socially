@@ -41,7 +41,7 @@ app.use("/api/v1/messages", messageRouter);
 app.use("/api/v1/auth", authRouter);
 
 app.get("/check", (req, res, next) => {
-  res.status(200).json({ message: "API is working!" });
+  res.status(200).json({ message: "OK" });
 });
 
 app.use((req, res, next) => {

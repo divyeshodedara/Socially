@@ -1,8 +1,10 @@
 import Redis from "ioredis";
 
 const redis = new Redis({
-  host: process.env.REDIS_HOST || "127.0.0.1",
-  port: process.env.REDIS_PORT || 6379,
+  host: process.env.REDIS_HOST,
+  port: process.env.REDIS_PORT,
+  password: process.env.REDIS_PASSWORD,
+  tls: process.env.NODE_ENV === "production" ? {} : undefined, // Upstash requires TLS
   retryStrategy: (times) => Math.min(times * 50, 2000),
   lazyConnect: true,
 });
