@@ -11,12 +11,12 @@ import { useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 
 const Post = ({ post, onUpdate }) => {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const { socket } = useSocket();
   const navigate = useNavigate();
   const [commentText, setCommentText] = useState("");
   const [isLiked, setIsLiked] = useState(post.likes?.includes(user?._id));
-  const [isSaved, setIsSaved] = useState(user?.savedPosts?.includes(post._id));
+  // const [isSaved, setIsSaved] = useState(user?.savedPosts?.includes(post._id));
   const [likesCount, setLikesCount] = useState(post.likes?.length || 0);
   const [commentsCount, setCommentsCount] = useState(post.comments?.length || 0);
   const [submittingComment, setSubmittingComment] = useState(false);
@@ -25,6 +25,21 @@ const Post = ({ post, onUpdate }) => {
   const [showMenu, setShowMenu] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [loadingComments, setLoadingComments] = useState(false);
+  // const [isSaved, setIsSaved] = useState(() =>
+  //   (user?.savedPosts || []).some((s) => (s?._id || s)?.toString() === post._id?.toString()),
+  // );
+
+  // // Add this after the isSaved useState declaration
+  // useEffect(() => {
+  //   const saved = (user?.savedPosts || []).some((s) => (s?._id || s)?.toString() === post._id?.toString());
+  //   setIsSaved(saved);
+  // }, [user?.savedPosts, post._id]);
+  const [isSaved, setIsSaved] = useState(false); // will be set by effect below
+
+  useEffect(() => {
+    const saved = (user?.savedPosts || []).some((s) => (s?._id || s)?.toString() === post._id?.toString());
+    setIsSaved(saved);
+  }, [user?.savedPosts, post._id]);
 
   const queryClient = useQueryClient();
 
@@ -106,14 +121,115 @@ const Post = ({ post, onUpdate }) => {
       toast.error("Failed to like post");
     }
   };
+  // const handleSave = async () => {
+  //   try {
+  //     const response = await api.post(`/posts/save/${post._id}`);
+  //     if (response.data.status === "Success") {
+  //       setIsSaved(!isSaved);
+  //       toast.success(response.data.message);
+  //     }
+  //   } catch (error) {
+  //     toast.error("Failed to save post");
+  //   }
+  // };
+  // const handleSave = async () => {
+  //   const wasSaved = isSaved;
+
+  //   // Optimistic update
+  //   setIsSaved(!wasSaved);
+
+  //   try {
+  //     const response = await api.post(`/posts/save/${post._id}`);
+  //     if (response.data.status === "Success") {
+  //       toast.success(response.data.message);
+
+  //       // Sync the auth user's savedPosts so re-mounts read correct state
+  //       updateUser({
+  //         ...user,
+  //         savedPosts: wasSaved
+  //           ? (user.savedPosts || []).filter((id) => id !== post._id && id?._id !== post._id)
+  //           : [...(user.savedPosts || []), post._id],
+  //       });
+  //     }
+  //   } catch (error) {
+  //     setIsSaved(wasSaved); // revert on failure
+  //     toast.error("Failed to save post");
+  //   }
+  // };
+
+  // const handleSave = async () => {
+  //   const wasSaved = isSaved;
+
+  //   // Optimistic local update
+  //   setIsSaved(!wasSaved);
+
+  //   try {
+  //     const response = await api.post(`/posts/save/${post._id}`);
+  //     if (response.data.status === "Success") {
+  //       toast.success(response.data.message);
+
+  //       // 1. Sync AuthContext so re-mounts read correct initial state
+  //       updateUser({
+  //         ...user,
+  //         savedPosts: wasSaved
+  //           ? (user.savedPosts || []).filter((s) => (s?._id || s)?.toString() !== post._id?.toString())
+  //           : [...(user.savedPosts || []), post],
+  //       });
+
+  //       // 2. Sync TanStack Query ["user","me"] cache so SavedPostsPage sees it instantly
+  //       queryClient.setQueryData(["user", "me"], (old) => {
+  //         if (!old) return old;
+  //         const currentSaved = old.savedPosts || [];
+  //         return {
+  //           ...old,
+  //           savedPosts: wasSaved
+  //             ? currentSaved.filter((s) => (s?._id || s)?.toString() !== post._id?.toString())
+  //             : [post, ...currentSaved], // full post object so SavedPostsPage can render it
+  //         };
+  //       });
+  //     }
+  //   } catch (error) {
+  //     setIsSaved(wasSaved); // revert on failure
+  //     toast.error("Failed to save post");
+  //   }
+  // };
   const handleSave = async () => {
+    const wasSaved = isSaved;
+    setIsSaved(!wasSaved);
+
     try {
       const response = await api.post(`/posts/save/${post._id}`);
       if (response.data.status === "Success") {
-        setIsSaved(!isSaved);
         toast.success(response.data.message);
+
+        const filterFn = (s) => (s?._id || s)?.toString() !== post._id?.toString();
+
+        // 1. Sync AuthContext
+        updateUser({
+          ...user,
+          savedPosts: wasSaved ? (user.savedPosts || []).filter(filterFn) : [...(user.savedPosts || []), post],
+        });
+
+        // 2. Sync ["user", "me"] — used by SavedPostsPage
+        queryClient.setQueryData(["user", "me"], (old) => {
+          if (!old) return old;
+          return {
+            ...old,
+            savedPosts: wasSaved ? (old.savedPosts || []).filter(filterFn) : [post, ...(old.savedPosts || [])],
+          };
+        });
+
+        // 3. Sync ["user", userId] — used by ProfilePage saved tab
+        queryClient.setQueryData(["user", user._id], (old) => {
+          if (!old) return old;
+          return {
+            ...old,
+            savedPosts: wasSaved ? (old.savedPosts || []).filter(filterFn) : [post, ...(old.savedPosts || [])],
+          };
+        });
       }
     } catch (error) {
+      setIsSaved(wasSaved);
       toast.error("Failed to save post");
     }
   };

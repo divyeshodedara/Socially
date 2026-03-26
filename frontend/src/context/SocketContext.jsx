@@ -24,11 +24,11 @@ export const SocketProvider = ({ children }) => {
       const socketInstance = io(import.meta.env.VITE_SOCKET_URL, { withCredentials: true });
 
       socketInstance.on("connect", () => {
-        console.log("Socket connected:", socketInstance.id);
+        // console.log("Socket connected:", socketInstance.id);
       });
 
       socketInstance.on("disconnect", () => {
-        console.log("Socket disconnected");
+        // console.log("Socket disconnected");
       });
 
       socketRef.current = socketInstance;
@@ -43,6 +43,21 @@ export const SocketProvider = ({ children }) => {
       socket.emit("user-connected", user._id);
     }
   }, [socket, user?._id]);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleNotification = (notification) => {
+      setNotifications((prev) => [notification, ...prev]);
+      setUnreadCount((prev) => (prev ?? 0) + 1);
+    };
+
+    socket.on("new-notification", handleNotification);
+
+    return () => {
+      socket.off("new-notification", handleNotification);
+    };
+  }, [socket]);
 
   const getNotificationMessage = (notification) => {
     switch (notification.type) {

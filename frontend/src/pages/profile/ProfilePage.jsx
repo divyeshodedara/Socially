@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Settings, Grid, Bookmark, LogOut, MessageCircle, Heart } from "lucide-react";
+import { Settings, Grid, Bookmark, LogOut, MessageCircle, Heart, UserCheck } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../api/api";
 import toast from "react-hot-toast";
@@ -17,7 +17,6 @@ const ProfilePage = () => {
 
   const isOwnProfile = currentUser?._id === id;
 
-  // Fetch user profile with React Query
   const {
     data: profile = null,
     isLoading: profileLoading,
@@ -26,20 +25,16 @@ const ProfilePage = () => {
     queryKey: ["user", id],
     queryFn: async () => {
       const response = await api.get(`/users/profile/${id}`);
-      if (response.data.status === "success") {
-        return response.data.data.user;
-      }
+      if (response.data.status === "success") return response.data.data.user;
       throw new Error("Failed to load profile");
     },
-    staleTime: 120000, // Cache for 2 minutes
+    staleTime: 120000,
     retry: (failureCount, error) => {
-      // Don't retry on rate limit errors
       if (error.response?.status === 429) return false;
       return failureCount < 2;
     },
   });
 
-  // Fetch user posts with React Query
   const {
     data: posts = [],
     isLoading: postsLoading,
@@ -48,28 +43,31 @@ const ProfilePage = () => {
     queryKey: ["posts", "user", id],
     queryFn: async () => {
       const response = await api.get(`/posts/user-posts/${id}`);
-      if (response.data.status === "Success") {
-        return response.data.data.posts || [];
-      }
+      if (response.data.status === "Success") return response.data.data.posts || [];
       throw new Error("Failed to load posts");
     },
-    staleTime: 60000, // Cache for 1 minute
+    staleTime: 60000,
     retry: (failureCount, error) => {
-      // Don't retry on rate limit errors
       if (error.response?.status === 429) return false;
       return failureCount < 2;
     },
   });
 
+  const { data: followingList = [] } = useQuery({
+    queryKey: ["following", id],
+    queryFn: async () => {
+      const response = await api.get(`/users/following/${id}`);
+      if (response.data.status === "success") return response.data.data.following;
+      throw new Error("Failed to load following");
+    },
+    enabled: activeTab === "following",
+    staleTime: 60000,
+  });
+
   const loading = profileLoading || postsLoading;
   const error = profileError || postsError;
-
-  // const loading = profileLoading || postsLoading;
-  // const error = profileError || postsError;
-
   const savedPosts = profile?.savedPosts || [];
 
-  // Update isFollowing state when profile or currentUser changes
   useEffect(() => {
     if (profile?.followers && currentUser?._id) {
       setIsFollowing(profile.followers.includes(currentUser._id));
@@ -83,22 +81,17 @@ const ProfilePage = () => {
       if (response.data.status === "success") {
         toast.success(response.data.message || "User followed successfully");
         setIsFollowing(true);
-
-        // Update profile cache optimistically
         queryClient.setQueryData(["user", id], (old) => ({
           ...old,
           followers: [...(old.followers || []), currentUser._id],
         }));
-
-        // Update current user's following list in AuthContext
         updateUser({
           ...currentUser,
           following: [...(currentUser.following || []), id],
         });
       }
     } catch (err) {
-      const message = err.response?.data?.message || "Failed to follow user";
-      toast.error(message);
+      toast.error(err.response?.data?.message || "Failed to follow user");
     } finally {
       setFollowLoading(false);
     }
@@ -111,22 +104,17 @@ const ProfilePage = () => {
       if (response.data.status === "success") {
         toast.success(response.data.message || "User unfollowed successfully");
         setIsFollowing(false);
-
-        // Update profile cache optimistically
         queryClient.setQueryData(["user", id], (old) => ({
           ...old,
           followers: old.followers.filter((fId) => fId !== currentUser._id),
         }));
-
-        // Update current user's following list in AuthContext
         updateUser({
           ...currentUser,
           following: currentUser.following.filter((fId) => fId !== id),
         });
       }
     } catch (err) {
-      const message = err.response?.data?.message || "Failed to unfollow user";
-      toast.error(message);
+      toast.error(err.response?.data?.message || "Failed to unfollow user");
     } finally {
       setFollowLoading(false);
     }
@@ -137,6 +125,30 @@ const ProfilePage = () => {
     navigate("/login");
   };
 
+  const handleUnfollowFromList = async (targetUserId) => {
+    // Optimistic update
+    queryClient.setQueryData(["following", id], (old = []) =>
+      old.filter((u) => u._id?.toString() !== targetUserId?.toString())
+    );
+    const previousFollowing = currentUser.following;
+    updateUser({
+      ...currentUser,
+      following: (currentUser.following || []).filter(
+        (fId) => fId?.toString() !== targetUserId?.toString()
+      ),
+    });
+    try {
+      await api.post(`/users/unfollow/${targetUserId}`);
+      toast.success("Unfollowed successfully");
+    } catch {
+      // Revert on failure
+      queryClient.invalidateQueries(["following", id]);
+      updateUser({ ...currentUser, following: previousFollowing });
+      toast.error("Failed to unfollow");
+    }
+  };
+
+  // Early returns AFTER all hooks
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -158,8 +170,7 @@ const ProfilePage = () => {
             </div>
             <h2 className="text-3xl font-bold text-mono-black dark:text-mono-white mb-3">Too Many Requests</h2>
             <p className="text-lg text-mono-600 dark:text-mono-400 mb-6 max-w-md">
-              {error.response?.data?.message ||
-                "You've made too many attempts. Please take a break and try again later."}
+              {error.response?.data?.message || "You've made too many attempts. Please take a break and try again later."}
             </p>
             <div className="flex gap-4">
               <button
@@ -226,7 +237,6 @@ const ProfilePage = () => {
 
           {/* Profile Info */}
           <div className="flex-1">
-            {/* Username and Action Button */}
             <div className="flex flex-col sm:flex-row items-center gap-4 mb-5">
               <h1 className="text-3xl font-bold text-mono-black dark:text-mono-white">{profile.username}</h1>
 
@@ -293,14 +303,12 @@ const ProfilePage = () => {
               </div>
             </div>
 
-            {/* Bio */}
             {profile.bio && (
               <div className="text-mono-700 dark:text-mono-300">
                 <p className="whitespace-pre-wrap leading-relaxed">{profile.bio}</p>
               </div>
             )}
 
-            {/* Email (only for own profile) */}
             {isOwnProfile && (
               <div className="mt-3 text-sm text-mono-600 dark:text-mono-500 font-medium">{profile.email}</div>
             )}
@@ -308,9 +316,8 @@ const ProfilePage = () => {
         </div>
       </div>
 
-      {/* Posts Section */}
+      {/* Tabs */}
       <div className="bg-mono-white dark:bg-mono-900 rounded-card border border-mono-200 dark:border-mono-800 shadow-xl">
-        {/* Tabs */}
         <div className="flex border-b border-mono-200 dark:border-mono-800">
           <button
             onClick={() => setActiveTab("posts")}
@@ -337,6 +344,18 @@ const ProfilePage = () => {
               <span>Saved</span>
             </button>
           )}
+
+          <button
+            onClick={() => setActiveTab("following")}
+            className={`flex-1 flex items-center justify-center gap-2 py-4 font-bold transition-all duration-200 ${
+              activeTab === "following"
+                ? "text-mono-black dark:text-mono-white border-b-2 border-mono-black dark:border-mono-white bg-mono-50 dark:bg-mono-950"
+                : "text-mono-600 dark:text-mono-500 hover:text-mono-black dark:hover:text-mono-white hover:bg-mono-50 dark:hover:bg-mono-950"
+            }`}
+          >
+            <UserCheck className="w-5 h-5" />
+            <span>Following</span>
+          </button>
         </div>
 
         {/* Tab Content */}
@@ -346,7 +365,9 @@ const ProfilePage = () => {
               <div className="text-center py-12">
                 <p className="text-mono-600 dark:text-mono-500">No posts yet</p>
                 {isOwnProfile && (
-                  <p className="text-sm text-mono-600 dark:text-mono-500 mt-2">Share your first post to get started!</p>
+                  <p className="text-sm text-mono-600 dark:text-mono-500 mt-2">
+                    Share your first post to get started!
+                  </p>
                 )}
               </div>
             ) : (
@@ -374,38 +395,77 @@ const ProfilePage = () => {
                 ))}
               </div>
             )
-          ) : savedPosts.length === 0 ? (
-            <div className="text-center py-12">
-              <Bookmark className="w-16 h-16 text-mono-400 dark:text-mono-700 mx-auto mb-4" />
-              <p className="text-mono-600 dark:text-mono-500">No saved posts yet</p>
-              <p className="text-sm text-mono-600 dark:text-mono-500 mt-2">Posts you save will appear here</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-3 gap-3 sm:gap-4">
-              {savedPosts.map((post) => (
-                <div
-                  key={post._id}
-                  onClick={() => navigate("/", { state: { postId: post._id } })}
-                  className="relative group overflow-hidden bg-mono-100 dark:bg-mono-800 hover:opacity-95 transition-all duration-200 rounded-card aspect-square cursor-pointer"
-                >
-                  <img src={post.image?.url} alt="Saved Post" className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
-                    <div className="flex items-center gap-4 text-white">
-                      <div className="flex items-center gap-1">
-                        <Heart className="w-5 h-5 fill-white" />
-                        <span className="font-semibold">{post.likes?.length || 0}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <MessageCircle className="w-5 h-5" />
-                        <span className="font-semibold">{post.comments?.length || 0}</span>
+          ) : activeTab === "saved" ? (
+            savedPosts.length === 0 ? (
+              <div className="text-center py-12">
+                <Bookmark className="w-16 h-16 text-mono-400 dark:text-mono-700 mx-auto mb-4" />
+                <p className="text-mono-600 dark:text-mono-500">No saved posts yet</p>
+                <p className="text-sm text-mono-600 dark:text-mono-500 mt-2">Posts you save will appear here</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 gap-3 sm:gap-4">
+                {savedPosts.map((post) => (
+                  <div
+                    key={post._id}
+                    onClick={() => navigate("/", { state: { postId: post._id } })}
+                    className="relative group overflow-hidden bg-mono-100 dark:bg-mono-800 hover:opacity-95 transition-all duration-200 rounded-card aspect-square cursor-pointer"
+                  >
+                    <img src={post.image?.url} alt="Saved Post" className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                      <div className="flex items-center gap-4 text-white">
+                        <div className="flex items-center gap-1">
+                          <Heart className="w-5 h-5 fill-white" />
+                          <span className="font-semibold">{post.likes?.length || 0}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <MessageCircle className="w-5 h-5" />
+                          <span className="font-semibold">{post.comments?.length || 0}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
+                ))}
+              </div>
+            )
+          ) : followingList.length === 0 ? (
+            <div className="text-center py-12">
+              <UserCheck className="w-16 h-16 text-mono-400 dark:text-mono-700 mx-auto mb-4" />
+              <p className="text-mono-600 dark:text-mono-500">Not following anyone yet</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-mono-200 dark:divide-mono-800">
+              {followingList.map((followedUser) => (
+                <div key={followedUser._id} className="flex items-center justify-between p-4">
+                  <Link to={`/profile/${followedUser._id}`} className="flex items-center gap-3 group">
+                    <img
+                      src={followedUser.profilePicture || "https://via.placeholder.com/40"}
+                      alt={followedUser.username}
+                      className="w-10 h-10 rounded-full object-cover border-2 border-mono-200 dark:border-mono-700"
+                    />
+                    <div>
+                      <p className="font-semibold text-sm text-mono-black dark:text-mono-white group-hover:underline">
+                        {followedUser.username}
+                      </p>
+                      {followedUser.bio && (
+                        <p className="text-xs text-mono-500 dark:text-mono-400 truncate max-w-[200px]">
+                          {followedUser.bio}
+                        </p>
+                      )}
+                    </div>
+                  </Link>
+                  {isOwnProfile && (
+                    <button
+                      onClick={() => handleUnfollowFromList(followedUser._id)}
+                      className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-mono-300 dark:border-mono-700 text-mono-600 dark:text-mono-400 hover:border-red-400 hover:text-red-500 dark:hover:text-red-400 transition-all duration-200"
+                    >
+                      Unfollow
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
           )}
-        </div>
+        </div>  
       </div>
     </div>
   );

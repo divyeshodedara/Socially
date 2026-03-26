@@ -63,10 +63,12 @@ const editProfile = catchAsync(async (req, res, next) => {
 
 const suggestedUser = catchAsync(async (req, res, next) => {
   const userId = req.user._id;
-  console.log(userId);
+  const currentUser = await User.findById(userId).select("following");
 
-  const users = await User.find({ _id: { $ne: userId } })
-    .select("_id username bio profilePicture")
+  const users = await User.find({
+    _id: { $ne: userId, $nin: currentUser.following },
+  })
+    .select("_id username bio profilePicture followers")
     .limit(20)
     .lean();
 
@@ -188,4 +190,20 @@ const searchUsers = catchAsync(async (req, res, next) => {
   });
 });
 
-export { getProfile, editProfile, suggestedUser, followUser, unfollowUser, getMe, searchUsers };
+const getFollowing = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+
+  const user = await User.findById(id)
+    .select("following")
+    .populate("following", "_id username bio profilePicture followers")
+    .lean();
+
+  if (!user) return next(new AppError("User not found", 404));
+
+  res.status(200).json({
+    status: "success",
+    data: { following: user.following },
+  });
+});
+
+export { getProfile, editProfile, suggestedUser, followUser, unfollowUser, getMe, searchUsers, getFollowing };
