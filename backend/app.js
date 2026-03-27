@@ -16,7 +16,7 @@ import { apiLimiter } from "./middleware/rateLimiter.js";
 const app = express();
 
 // Trust proxy to get correct client IP
-// app.set("trust proxy", true);
+app.set("trust proxy", true);
 
 // app.use(
 //   cors({

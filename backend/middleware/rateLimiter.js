@@ -33,13 +33,13 @@ const createRateLimiter = (windowMs, max, message = "Too many attempts. Please t
     //   return `ip:${ipKeyGenerator(ip)}`;
     // },
     keyGenerator: (req) => {
-      const realIp = req.headers["x-real-ip"]; // 👈 from worker
+      // const realIp = req.headers["x-real-ip"]; // 👈 from worker
       const forwarded = req.headers["x-forwarded-for"];
 
-      const ip = realIp || forwarded?.split(",")[0] || req.ip;
-
+      // const ip = realIp || forwarded?.split(",")[0] || req.ip;
+      const ip = forwarded?.split(",")[0] || req.ip;
       console.log("DEBUG IP FIXED:", {
-        realIp,
+        // realIp,
         forwarded,
         reqIp: req.ip,
         finalIp: ip,
