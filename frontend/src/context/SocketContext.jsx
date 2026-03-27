@@ -21,7 +21,10 @@ export const SocketProvider = ({ children }) => {
 
   useEffect(() => {
     if (isAuthenticated && !socketRef.current) {
-      const socketInstance = io(import.meta.env.VITE_SOCKET_URL, { withCredentials: true });
+      // const socketInstance = io(import.meta.env.VITE_SOCKET_URL, { withCredentials: true });
+      const socketInstance = io("http://localhost:3000", {
+        withCredentials: true,
+      });
 
       socketInstance.on("connect", () => {
         // console.log("Socket connected:", socketInstance.id);

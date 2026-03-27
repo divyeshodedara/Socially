@@ -106,21 +106,64 @@ const Post = ({ post, onUpdate }) => {
   //   }
   // };
 
+  // const handleLike = async () => {
+  //   // Optimistically update UI immediately
+  //   const wasLiked = isLiked;
+  //   setIsLiked(!wasLiked);
+  //   setLikesCount((prev) => (wasLiked ? prev - 1 : prev + 1));
+
+  //   try {
+  //     await api.post(`/posts/like-dislike/${post._id}`);
+  //   } catch (error) {
+  //     // Revert on failure
+  //     setIsLiked(wasLiked);
+  //     setLikesCount((prev) => (wasLiked ? prev + 1 : prev - 1));
+  //     toast.error("Failed to like post");
+  //   }
+  // };
+
   const handleLike = async () => {
-    // Optimistically update UI immediately
     const wasLiked = isLiked;
     setIsLiked(!wasLiked);
     setLikesCount((prev) => (wasLiked ? prev - 1 : prev + 1));
 
     try {
       await api.post(`/posts/like-dislike/${post._id}`);
+
+      // ✅ Sync the feed cache so remounts read correct state
+      queryClient.setQueryData(["posts", "feed"], (old) => {
+        if (!old) return old;
+
+        // TanStack Query paginated data lives in old.pages
+        const updatePost = (p) => {
+          if (p._id !== post._id) return p;
+          const updatedLikes = wasLiked
+            ? (p.likes || []).filter((id) => id?.toString() !== user._id?.toString())
+            : [...(p.likes || []), user._id];
+          return { ...p, likes: updatedLikes };
+        };
+
+        // Handle both paginated (pages) and flat array responses
+        if (old.pages) {
+          return {
+            ...old,
+            pages: old.pages.map((page) => ({
+              ...page,
+              posts: (page.posts || []).map(updatePost),
+            })),
+          };
+        }
+
+        return Array.isArray(old) ? old.map(updatePost) : old;
+      });
     } catch (error) {
-      // Revert on failure
+      // Revert local state
       setIsLiked(wasLiked);
       setLikesCount((prev) => (wasLiked ? prev + 1 : prev - 1));
       toast.error("Failed to like post");
     }
   };
+
   // const handleSave = async () => {
   //   try {
   //     const response = await api.post(`/posts/save/${post._id}`);

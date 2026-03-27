@@ -18,7 +18,7 @@ const SuggestedUsersPage = () => {
 
   useEffect(() => {
     if (user?.following) {
-      setFollowingUsers(new Set(user.following));
+      setFollowingUsers(new Set(user.following.map((id) => id?.toString())));
     }
   }, [user?.following]);
 
@@ -183,7 +183,8 @@ const SuggestedUsersPage = () => {
                     }
                   }}
                   className={`px-4 py-1.5 text-sm font-bold rounded-md transition-all duration-200 transform hover:scale-105 active:scale-95 disabled:transform-none disabled:cursor-not-allowed ${
-                    followingUsers.has(suggestedUser._id)
+                    // followingUsers.has(suggestedUser._id)
+                    followingUsers.has(suggestedUser._id?.toString())
                       ? "bg-mono-200 dark:bg-mono-800 text-mono-600 dark:text-mono-300 hover:bg-mono-300 dark:hover:bg-mono-700"
                       : "bg-mono-black dark:bg-mono-white text-mono-white dark:text-mono-black hover:bg-mono-800 dark:hover:bg-mono-200"
                   }`}

@@ -79,6 +79,7 @@ const ProfilePage = () => {
     try {
       const response = await api.post(`/users/follow/${id}`);
       if (response.data.status === "success") {
+        queryClient.invalidateQueries(["user", currentUser._id]);
         toast.success(response.data.message || "User followed successfully");
         setIsFollowing(true);
         queryClient.setQueryData(["user", id], (old) => ({
@@ -102,6 +103,7 @@ const ProfilePage = () => {
     try {
       const response = await api.post(`/users/unfollow/${id}`);
       if (response.data.status === "success") {
+        queryClient.invalidateQueries(["user", currentUser._id]);
         toast.success(response.data.message || "User unfollowed successfully");
         setIsFollowing(false);
         queryClient.setQueryData(["user", id], (old) => ({
@@ -128,14 +130,12 @@ const ProfilePage = () => {
   const handleUnfollowFromList = async (targetUserId) => {
     // Optimistic update
     queryClient.setQueryData(["following", id], (old = []) =>
-      old.filter((u) => u._id?.toString() !== targetUserId?.toString())
+      old.filter((u) => u._id?.toString() !== targetUserId?.toString()),
     );
     const previousFollowing = currentUser.following;
     updateUser({
       ...currentUser,
-      following: (currentUser.following || []).filter(
-        (fId) => fId?.toString() !== targetUserId?.toString()
-      ),
+      following: (currentUser.following || []).filter((fId) => fId?.toString() !== targetUserId?.toString()),
     });
     try {
       await api.post(`/users/unfollow/${targetUserId}`);
@@ -170,7 +170,8 @@ const ProfilePage = () => {
             </div>
             <h2 className="text-3xl font-bold text-mono-black dark:text-mono-white mb-3">Too Many Requests</h2>
             <p className="text-lg text-mono-600 dark:text-mono-400 mb-6 max-w-md">
-              {error.response?.data?.message || "You've made too many attempts. Please take a break and try again later."}
+              {error.response?.data?.message ||
+                "You've made too many attempts. Please take a break and try again later."}
             </p>
             <div className="flex gap-4">
               <button
@@ -365,9 +366,7 @@ const ProfilePage = () => {
               <div className="text-center py-12">
                 <p className="text-mono-600 dark:text-mono-500">No posts yet</p>
                 {isOwnProfile && (
-                  <p className="text-sm text-mono-600 dark:text-mono-500 mt-2">
-                    Share your first post to get started!
-                  </p>
+                  <p className="text-sm text-mono-600 dark:text-mono-500 mt-2">Share your first post to get started!</p>
                 )}
               </div>
             ) : (
@@ -465,7 +464,7 @@ const ProfilePage = () => {
               ))}
             </div>
           )}
-        </div>  
+        </div>
       </div>
     </div>
   );

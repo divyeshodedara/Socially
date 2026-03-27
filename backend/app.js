@@ -16,18 +16,25 @@ import { apiLimiter } from "./middleware/rateLimiter.js";
 const app = express();
 
 // Trust proxy to get correct client IP
-app.set("trust proxy", true);
+// app.set("trust proxy", true);
+
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  }),
+);
 
 app.get("/check", (req, res, next) => {
   res.status(200).json({ message: "OK" });
 });
 
-app.use((req, res, next) => {
-  if (req.headers["x-internal-secret"] !== process.env.INTERNAL_SECRET) {
-    return res.status(403).end();
-  }
-  next();
-});
+// app.use((req, res, next) => {
+//   if (req.headers["x-internal-secret"] !== process.env.INTERNAL_SECRET) {
+//     return res.status(403).end();
+//   }
+//   next();
+// });
 
 // app.use(
 //   cors({
@@ -36,12 +43,12 @@ app.use((req, res, next) => {
 //   }),
 // );
 
-app.use(
-  cors({
-    origin: [process.env.FRONTEND_URL, process.env.WORKER_URL],
-    credentials: true,
-  }),
-);
+// app.use(
+//   cors({
+//     origin: [process.env.FRONTEND_URL, process.env.WORKER_URL, "http://localhost:5173"],
+//     credentials: true,
+//   }),
+// );
 
 app.use(helmet());
 app.use(cookieParser());

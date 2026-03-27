@@ -12,7 +12,7 @@ export const initializeSocket = (server) => {
   // });
   io = new Server(server, {
     cors: {
-      origin: [process.env.FRONTEND_URL, process.env.WORKER_URL],
+      origin: [process.env.FRONTEND_URL, process.env.WORKER_URL, "http://localhost:3000"],
       credentials: true,
     },
   });

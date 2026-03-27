@@ -8,15 +8,29 @@ const createRateLimiter = (windowMs, max, message = "Too many attempts. Please t
     standardHeaders: true,
     legacyHeaders: false,
 
+    // keyGenerator: (req) => {
+    //   const cfIp = req.headers["cf-connecting-ip"];
+    //   const ip = cfIp || req.ip || req.socket.remoteAddress;
+
+    //   if (req.user?._id) {
+    //     return `user:${req.user._id}`;
+    //   }
+
+    //   return `ip:${ipKeyGenerator(ip)}`;
+    // },
     keyGenerator: (req) => {
       const cfIp = req.headers["cf-connecting-ip"];
-      const ip = cfIp || req.ip || req.socket.remoteAddress;
+      const forwarded = req.headers["x-forwarded-for"];
+      const ip = cfIp || forwarded?.split(",")[0] || req.ip;
 
-      if (req.user?._id) {
-        return `user:${req.user._id}`;
-      }
+      console.log("DEBUG IP:", {
+        cfIp,
+        forwarded,
+        reqIp: req.ip,
+        finalIp: ip,
+      });
 
-      return `ip:${ip}`;
+      return `ip:${ipKeyGenerator(ip)}`;
     },
 
     handler: (req, res) => {

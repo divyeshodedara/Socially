@@ -4,14 +4,58 @@ import { useAuth } from "../../context/AuthContext";
 import api from "../../api/api";
 import toast from "react-hot-toast";
 import { RefreshCw } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 const Sidebar = () => {
-  const { user, updateUser } = useAuth();
+  // const { user, updateUser } = useAuth();
   const [suggestedUsers, setSuggestedUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [followingUsers, setFollowingUsers] = useState(new Set());
   const [visibleCount, setVisibleCount] = useState(2);
   const suggestedCardRef = useRef(null);
+
+  const { user: authUser, updateUser } = useAuth();
+
+  const queryClient = useQueryClient();
+
+  // ✅ Use the same query key ProfilePage uses for the current user
+  const { data: freshUser } = useQuery({
+    queryKey: ["user", authUser?._id],
+    queryFn: async () => {
+      const response = await api.get(`/users/profile/${authUser._id}`);
+      if (response.data.status === "success") return response.data.data.user;
+      throw new Error("Failed to fetch profile");
+    },
+    enabled: !!authUser?._id,
+    staleTime: 60000,
+  });
+
+  const {
+    data: posts = [],
+    isLoading: postsLoading,
+    error: postsError,
+  } = useQuery({
+    queryKey: ["posts", "user", authUser?._id],
+    queryFn: async () => {
+      const response = await api.get(`/posts/user-posts/${authUser._id}`);
+      if (response.data.status === "Success") return response.data.data.posts || [];
+      throw new Error("Failed to load posts");
+    },
+    staleTime: 60000,
+    retry: (failureCount, error) => {
+      if (error.response?.status === 429) return false;
+      return failureCount < 2;
+    },
+  });
+
+  const user = freshUser
+    ? {
+        ...authUser,
+        posts: freshUser.posts,
+        followers: freshUser.followers,
+        following: freshUser.following,
+      }
+    : authUser;
 
   useEffect(() => {
     fetchSuggestedUsers();
@@ -19,7 +63,7 @@ const Sidebar = () => {
 
   useEffect(() => {
     if (user?.following) {
-      setFollowingUsers(new Set(user.following));
+      setFollowingUsers(new Set(user.following.map((id) => id?.toString())));
     }
   }, [user?.following]);
 
@@ -66,6 +110,7 @@ const Sidebar = () => {
 
     try {
       await api.post(`/users/follow/${userId}`);
+      queryClient.invalidateQueries(["user", authUser._id]);
     } catch (error) {
       setFollowingUsers((prev) => {
         const newSet = new Set(prev);
@@ -91,6 +136,7 @@ const Sidebar = () => {
 
     try {
       await api.post(`/users/unfollow/${userId}`);
+      queryClient.invalidateQueries(["user", authUser._id]);
     } catch (error) {
       setFollowingUsers((prev) => new Set([...prev, userId]));
       toast.error("Failed to unfollow user");
@@ -123,7 +169,8 @@ const Sidebar = () => {
           <div className="flex justify-around text-center text-sm text-mono-600 dark:text-mono-500 mb-4">
             <div>
               <div className="font-bold text-lg text-mono-black dark:text-mono-white">
-                {(user?.posts?.length || 0).toLocaleString()}
+                {/* {(user?.posts?.length || 0).toLocaleString()} */}
+                {posts.length.toLocaleString()}
               </div>
               <div className="text-xs font-medium">Posts</div>
             </div>
@@ -208,7 +255,8 @@ const Sidebar = () => {
                     }
                   }}
                   className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 ${
-                    followingUsers.has(suggestedUser._id)
+                    // followingUsers.has(suggestedUser._id)
+                    followingUsers.has(suggestedUser._id?.toString())
                       ? "bg-mono-800 dark:bg-mono-800 text-mono-white dark:text-mono-white border border-mono-700 dark:border-mono-700 hover:bg-mono-700 dark:hover:bg-mono-700"
                       : "bg-mono-white dark:bg-mono-white text-mono-black dark:text-mono-black border border-mono-300 dark:border-mono-300 hover:bg-mono-100 dark:hover:bg-mono-100"
                   }`}
