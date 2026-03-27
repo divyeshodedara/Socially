@@ -7,43 +7,15 @@ const createRateLimiter = (windowMs, max, message = "Too many attempts. Please t
     max,
     standardHeaders: true,
     legacyHeaders: false,
-
-    // keyGenerator: (req) => {
-    //   const cfIp = req.headers["cf-connecting-ip"];
-    //   const ip = cfIp || req.ip || req.socket.remoteAddress;
-
-    //   if (req.user?._id) {
-    //     return `user:${req.user._id}`;
-    //   }
-
-    //   return `ip:${ipKeyGenerator(ip)}`;
-    // },
-    // keyGenerator: (req) => {
-    //   const cfIp = req.headers["cf-connecting-ip"];
-    //   const forwarded = req.headers["x-forwarded-for"];
-    //   const ip = cfIp || forwarded?.split(",")[0] || req.ip;
-
-    //   console.log("DEBUG IP:", {
-    //     cfIp,
-    //     forwarded,
-    //     reqIp: req.ip,
-    //     finalIp: ip,
-    //   });
-
-    //   return `ip:${ipKeyGenerator(ip)}`;
-    // },
     keyGenerator: (req) => {
-      // const realIp = req.headers["x-real-ip"]; // 👈 from worker
       const forwarded = req.headers["x-forwarded-for"];
 
-      // const ip = realIp || forwarded?.split(",")[0] || req.ip;
       const ip = forwarded?.split(",")[0] || req.ip;
-      console.log("DEBUG IP FIXED:", {
-        // realIp,
-        forwarded,
-        reqIp: req.ip,
-        finalIp: ip,
-      });
+      // console.log("DEBUG IP FIXED:", {
+      //   forwarded,
+      //   reqIp: req.ip,
+      //   finalIp: ip,
+      // });
 
       if (req.user?._id) {
         return `user:${req.user._id}`;
