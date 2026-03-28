@@ -147,7 +147,7 @@ const VerifyEmailPage = () => {
         {/* Info */}
         <div className="mt-6 p-3 bg-mono-100 dark:bg-mono-800 border-2 border-mono-300 dark:border-mono-700 rounded-input">
           <p className="text-xs text-mono-600 dark:text-mono-400">
-            💡 The OTP will expire in 10 minutes. Check your spam folder if you don't see it.
+            The OTP will expire in 10 minutes. Check your spam folder if you don't see it.
           </p>
         </div>
       </div>

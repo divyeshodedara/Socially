@@ -49,44 +49,41 @@ const signup = catchAsync(async (req, res, next) => {
   }
 
   const existingUser = await User.findOne({ email });
-
   if (existingUser) {
     return next(new AppError("User already exists", 400));
   }
 
   const userNameExists = await User.findOne({ username });
-
   if (userNameExists) {
     return next(new AppError("Username already taken", 400));
   }
 
   const otp = generateOTP();
 
+  try {
+    await sendOtpEmail({
+      user: { username, email },
+      otp,
+      purpose: "verify your email",
+    });
+  } catch (err) {
+    console.error("Email error:", err.message);
+    return next(new AppError("There was an error sending the email. Please try again later.", 500));
+  }
+
   await redis.set(`otp:${email}`, otp, "EX", 10 * 60);
 
-  const newUser = await User.create({
+  await User.create({
     username,
     email,
     password,
     passwordConfirm,
   });
 
-  try {
-    await sendOtpEmail({
-      user: newUser,
-      otp: otp,
-      purpose: "verify your email",
-    });
-
-    res.status(201).json({
-      status: "success",
-      message: "email sent to the user",
-    });
-  } catch (err) {
-    console.error("Email error:", err.message);
-    await User.findByIdAndDelete(newUser._id);
-    return next(new AppError("There was an error sending the email. Please try again later.", 500));
-  }
+  res.status(201).json({
+    status: "success",
+    message: "email sent to the user",
+  });
 });
 
 const verifyOtp = catchAsync(async (req, res, next) => {
