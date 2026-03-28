@@ -116,18 +116,6 @@ const ChatPage = () => {
     }
   }, [socket, userId, currentUser, queryClient]);
 
-  // const markMessagesAsSeen = async () => {
-  //   try {
-  //     await api.patch(`/messages/${userId}/seen`);
-  //     // Invalidate unread count
-  //     queryClient.invalidateQueries(["messages", "unread"]);
-  //     // Invalidate conversations to update last message seen status
-  //     queryClient.invalidateQueries(["conversations"]);
-  //   } catch (error) {
-  //     console.error("Failed to mark messages as seen:", error);
-  //   }
-  // };
-
   const markMessagesAsSeen = async () => {
     try {
       await api.patch(`/messages/${userId}/seen`);

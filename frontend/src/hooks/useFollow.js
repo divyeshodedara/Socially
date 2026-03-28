@@ -13,13 +13,13 @@ export const useFollow = (currentUserId) => {
       const prevTarget = queryClient.getQueryData(["user", targetId]);
       const prevCurrent = queryClient.getQueryData(["user", currentUserId]);
 
-      // 🔥 Update target user (followers)
+      // Update target user (followers)
       queryClient.setQueryData(["user", targetId], (old) => ({
         ...old,
         followers: [...(old?.followers || []), currentUserId],
       }));
 
-      // 🔥 Update current user (following) → IMPORTANT
+      // Update current user (following) → IMPORTANT
       queryClient.setQueryData(["user", currentUserId], (old) => ({
         ...old,
         following: [...(old?.following || []), targetId],
