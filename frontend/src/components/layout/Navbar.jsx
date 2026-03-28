@@ -22,6 +22,7 @@ const Navbar = () => {
   const [searchFocused, setSearchFocused] = useState(false);
   const inputRef = useRef(null);
 
+
   // Close search results when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {

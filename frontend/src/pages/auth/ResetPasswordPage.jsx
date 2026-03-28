@@ -137,22 +137,6 @@ const ResetPasswordPage = () => {
             <p className="text-xs text-mono-600 dark:text-mono-500 mt-1">Enter the 6-digit code from your email</p>
           </div>
 
-          {/* New Password Field */}
-          {/* <div>
-            <label htmlFor="password" className="block text-sm font-medium text-mono-black dark:text-mono-white mb-2">
-              New Password
-            </label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              className="w-full px-4 py-2.5 bg-mono-white dark:bg-mono-900 border-2 border-mono-300 dark:border-mono-700 rounded-input text-mono-black dark:text-mono-white placeholder-mono-500 focus:ring-2 focus:ring-mono-black dark:focus:ring-mono-white focus:border-mono-black dark:focus:border-mono-white transition-all duration-200"
-              placeholder="Enter new password (min 8 characters)"
-              disabled={loading}
-            />
-          </div> */}
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-mono-black dark:text-mono-white mb-2">
               New Password
@@ -181,25 +165,6 @@ const ResetPasswordPage = () => {
             </div>
           </div>
 
-          {/* Confirm New Password Field */}
-          {/* <div>
-            <label
-              htmlFor="passwordConfirm"
-              className="block text-sm font-medium text-mono-black dark:text-mono-white mb-2"
-            >
-              Confirm New Password
-            </label>
-            <input
-              type="password"
-              id="passwordConfirm"
-              name="passwordConfirm"
-              value={formData.passwordConfirm}
-              onChange={handleChange}
-              className="w-full px-4 py-2.5 bg-mono-white dark:bg-mono-900 border-2 border-mono-300 dark:border-mono-700 rounded-input text-mono-black dark:text-mono-white placeholder-mono-500 focus:ring-2 focus:ring-mono-black dark:focus:ring-mono-white focus:border-mono-black dark:focus:border-mono-white transition-all duration-200"
-              placeholder="Confirm new password"
-              disabled={loading}
-            />
-          </div> */}
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-mono-black dark:text-mono-white mb-2">
               Confirm New Password
@@ -251,7 +216,7 @@ const ResetPasswordPage = () => {
         {/* Info */}
         <div className="mt-6 p-3 bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-300 dark:border-blue-700 rounded-input">
           <p className="text-xs text-blue-700 dark:text-blue-300">
-            💡 Make sure to use a strong password with at least 8 characters.
+            Make sure to use a strong password with at least 8 characters.
           </p>
         </div>
       </div>

@@ -16,6 +16,7 @@ export const SocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(null);
+  const [unreadMessageCount, setUnreadMessageCount] = useState(0);
   const { user, isAuthenticated } = useAuth();
   const socketRef = useRef(null);
 
@@ -23,12 +24,12 @@ export const SocketProvider = ({ children }) => {
     if (isAuthenticated && !socketRef.current) {
       const socketInstance = io(import.meta.env.VITE_SOCKET_URL, { withCredentials: true });
       // const socketInstance = io("http://localhost:3000", {
-      withCredentials: (true,
-        // });
+      //  withCredentials: (true,
+      // });
 
-        socketInstance.on("connect", () => {
-          // console.log("Socket connected:", socketInstance.id);
-        }));
+      socketInstance.on("connect", () => {
+        // console.log("Socket connected:", socketInstance.id);
+      });
 
       socketInstance.on("disconnect", () => {
         // console.log("Socket disconnected");
@@ -62,6 +63,24 @@ export const SocketProvider = ({ children }) => {
     };
   }, [socket]);
 
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleMessage = (data) => {
+      // Only count it if it's a new inbound message (not a "seen" update)
+      if (data.type === "newMessage") {
+        // Don't increment if the user is actively viewing that conversation.
+        // We track the active conversation ID via a ref (see below).
+        if (data.message?.sender?._id !== user?._id) {
+          setUnreadMessageCount((prev) => prev + 1);
+        }
+      }
+    };
+
+    socket.on("message", handleMessage);
+    return () => socket.off("message", handleMessage);
+  }, [socket, user?._id]);
+
   const getNotificationMessage = (notification) => {
     switch (notification.type) {
       case "like":
@@ -94,6 +113,8 @@ export const SocketProvider = ({ children }) => {
     setUnreadCount(0);
   };
 
+  const clearUnreadMessages = () => setUnreadMessageCount(0);
+
   const value = {
     socket,
     notifications,
@@ -104,7 +125,8 @@ export const SocketProvider = ({ children }) => {
     clearNotifications,
     setNotifications,
     setUnreadCount,
+    unreadMessageCount,
+    clearUnreadMessages,
   };
-
   return <SocketContext.Provider value={value}>{children}</SocketContext.Provider>;
 };

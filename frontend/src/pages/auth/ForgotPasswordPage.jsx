@@ -116,7 +116,7 @@ const ForgotPasswordPage = () => {
         {/* Info */}
         <div className="mt-6 p-3 bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-300 dark:border-blue-700 rounded-input">
           <p className="text-xs text-blue-700 dark:text-blue-300">
-            💡 You'll receive a 6-digit OTP code to reset your password. The code will expire in 10 minutes.
+            You'll receive a 6-digit OTP code to reset your password. The code will expire in 10 minutes.
           </p>
         </div>
       </div>

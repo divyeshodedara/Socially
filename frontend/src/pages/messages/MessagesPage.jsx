@@ -11,7 +11,7 @@ import { formatDistanceToNow } from "date-fns";
 const MessagesPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { socket } = useSocket();
+  const { socket, clearUnreadMessages } = useSocket();
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -36,6 +36,10 @@ const MessagesPage = () => {
       return failureCount < 2;
     },
   });
+
+  useEffect(() => {
+    clearUnreadMessages();
+  }, []);
 
   // Listen for new messages
   useEffect(() => {

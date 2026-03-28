@@ -27,12 +27,15 @@ const HomePage = () => {
     getNextPageParam: (lastPage, pages) => {
       return lastPage.hasMore ? pages.length + 1 : undefined;
     },
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
     staleTime: 30000, // Cache for 30 seconds
     gcTime: 300000, // Keep in cache for 5 minutes
   });
 
   // Flatten all posts from all pages
-  const posts = data?.pages.flatMap((page) => page.posts) || [];
+  // const posts = data?.pages.flatMap((page) => page.posts) || [];
+  const posts = data?.pages?.flatMap((page) => page.posts) ?? [];
 
   // Intersection Observer for infinite scroll
   useEffect(() => {
@@ -124,7 +127,7 @@ const HomePage = () => {
     queryClient.invalidateQueries(["posts", "feed"]);
   };
 
-  if (isLoading) {
+  if (isLoading && posts.length === 0) {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-mono-black dark:border-mono-white"></div>

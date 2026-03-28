@@ -76,26 +76,6 @@ const LoginPage = () => {
               disabled={loading}
             />
           </div>
-
-          {/* Password Field */}
-          {/* <div className="relative">
-            <input
-              type={showPassword ? "text" : "password"}
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2.5 pr-10 bg-mono-white dark:bg-mono-900 border-2 border-mono-300 dark:text-mono-white dark:border-mono-700 rounded-lg"
-              placeholder="Enter your password"
-            />
-
-            <span
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer"
-            >
-              👁️
-            </span>
-          </div> */}
-          {/* Password Field */}
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-mono-black dark:text-mono-white mb-2">
               Password

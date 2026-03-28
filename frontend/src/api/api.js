@@ -1,38 +1,39 @@
 import axios from "axios";
+import toast from "react-hot-toast";
 
-// Create axios instance with default config
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
-  // baseURL: "http://localhost:3000/api/v1",
-  withCredentials: true, // Send cookies with requests
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// Response interceptor to handle errors globally
 api.interceptors.response.use(
-  (response) => {
-    // Return successful responses as-is
-    return response;
-  },
+  (response) => response,
+
   (error) => {
-    // Handle 401 Unauthorized errors
-    if (error.response && error.response.status === 401) {
-      // Only redirect if not already on a public page
+    const status = error.response?.status;
+
+    // 401 - Unauthorized
+    if (status === 401) {
       const publicPaths = ["/login", "/signup", "/verify-email", "/forgot-password", "/reset-password"];
+
       const currentPath = window.location.pathname;
 
       if (!publicPaths.includes(currentPath)) {
-        // Clear any stored user data
         localStorage.removeItem("user");
-
-        // Redirect to login page
         window.location.href = "/login";
       }
     }
 
-    // Return the login error to be handled by the calling function
+    // 429 - Rate Limit (FROM YOUR CLOUDFLARE WORKER)
+    if (status === 429) {
+      const message = error.response?.data?.message || "Too many requests. Please slow down.";
+
+      toast.error(message);
+    }
+
     return Promise.reject(error);
   },
 );
